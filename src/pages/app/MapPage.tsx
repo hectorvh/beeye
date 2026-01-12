@@ -53,7 +53,7 @@ export default function MapPage() {
   };
 
   return (
-    <div className="relative flex h-full">
+    <div className="relative flex h-full flex-col md:flex-row">
       {/* Map Container */}
       <div className="flex-1 relative bg-surface-1">
         {/* Placeholder map background */}
@@ -85,7 +85,7 @@ export default function MapPage() {
             <div
               key={alert.id}
               className={cn(
-                "absolute cursor-pointer transition-transform hover:scale-110",
+                "absolute cursor-pointer transition-transform hover:scale-110 active:scale-95",
                 alert.severity === "critical" && "pulse-critical"
               )}
               style={{
@@ -95,7 +95,7 @@ export default function MapPage() {
               onClick={() => setSelectedFeature(alert)}
             >
               <div className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full border-2",
+                "flex h-10 w-10 md:h-10 md:w-10 items-center justify-center rounded-full border-2",
                 alert.severity === "critical" && "border-critical bg-critical/20",
                 alert.severity === "high" && "border-warning bg-warning/20",
                 alert.severity === "medium" && "border-warning/70 bg-warning/10",
@@ -139,23 +139,23 @@ export default function MapPage() {
           ))}
         </div>
 
-        {/* Map controls */}
-        <div className="absolute right-4 top-4 flex flex-col gap-2">
-          <Button size="icon" variant="secondary" className="bg-card/90 backdrop-blur-sm">
+        {/* Map controls - repositioned for mobile */}
+        <div className="absolute right-3 top-3 md:right-4 md:top-4 flex flex-col gap-2">
+          <Button size="icon" variant="secondary" className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm">
             <ZoomIn className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="secondary" className="bg-card/90 backdrop-blur-sm">
+          <Button size="icon" variant="secondary" className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm">
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="secondary" className="bg-card/90 backdrop-blur-sm">
+          <Button size="icon" variant="secondary" className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm">
             <Crosshair className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Time slider */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 glass-panel rounded-xl p-4 w-[500px]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+        {/* Time slider - responsive width */}
+        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 glass-panel rounded-xl p-3 md:p-4 w-[calc(100%-24px)] max-w-[500px]">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-1 md:gap-2">
               <Button size="icon" variant="ghost" className="h-8 w-8">
                 <SkipBack className="h-4 w-4" />
               </Button>
@@ -180,50 +180,53 @@ export default function MapPage() {
                 className="cursor-pointer"
               />
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+              <Clock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
               <span className="font-mono text-foreground">Live</span>
             </div>
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="absolute left-4 bottom-4 glass-panel rounded-xl p-3">
-          <p className="text-xs font-semibold text-muted-foreground mb-2">Fire Risk</p>
+        {/* Legend - hide on very small screens, show on bottom-left on larger mobile */}
+        <div className="hidden sm:block absolute left-3 bottom-20 md:left-4 md:bottom-4 glass-panel rounded-xl p-2 md:p-3">
+          <p className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2">Fire Risk</p>
           <div className="flex gap-1">
-            <div className="w-6 h-3 rounded-sm bg-success" />
-            <div className="w-6 h-3 rounded-sm bg-warning/50" />
-            <div className="w-6 h-3 rounded-sm bg-warning" />
-            <div className="w-6 h-3 rounded-sm bg-critical/70" />
-            <div className="w-6 h-3 rounded-sm bg-critical" />
+            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-success" />
+            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-warning/50" />
+            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-warning" />
+            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-critical/70" />
+            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-critical" />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-muted-foreground">Low</span>
-            <span className="text-[10px] text-muted-foreground">Extreme</span>
+            <span className="text-[8px] md:text-[10px] text-muted-foreground">Low</span>
+            <span className="text-[8px] md:text-[10px] text-muted-foreground">Extreme</span>
           </div>
         </div>
       </div>
 
-      {/* Layer Panel Toggle */}
+      {/* Layer Panel Toggle - adjust position for mobile */}
       <Button
         size="icon"
         variant="secondary"
         className={cn(
-          "absolute top-4 z-10 bg-card/90 backdrop-blur-sm transition-all",
-          layerPanelOpen ? "left-[316px]" : "left-4"
+          "absolute top-3 z-10 h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm transition-all",
+          layerPanelOpen ? "left-[calc(100%-48px)] md:left-[316px]" : "left-3 md:left-4"
         )}
         onClick={() => setLayerPanelOpen(!layerPanelOpen)}
       >
         {layerPanelOpen ? <ChevronLeft className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
       </Button>
 
-      {/* Layer Panel */}
+      {/* Layer Panel - Sheet on mobile, static on desktop */}
       <div className={cn(
-        "absolute left-0 top-0 bottom-0 w-80 bg-card border-r border-border transition-transform duration-300",
+        "absolute left-0 top-0 bottom-0 w-full md:w-80 bg-card border-r border-border transition-transform duration-300 z-20",
         !layerPanelOpen && "-translate-x-full"
       )}>
         <div className="flex h-12 items-center justify-between border-b border-border px-4">
           <h3 className="font-semibold">Map Layers</h3>
+          <Button size="icon" variant="ghost" className="md:hidden h-8 w-8" onClick={() => setLayerPanelOpen(false)}>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         <ScrollArea className="h-[calc(100%-48px)]">
           <div className="p-4 space-y-4">
@@ -304,12 +307,12 @@ export default function MapPage() {
         </ScrollArea>
       </div>
 
-      {/* Feature Detail Drawer */}
+      {/* Feature Detail Drawer - Use Sheet for mobile */}
       {selectedFeature && (
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-card border-l border-border animate-slide-in-right">
-          <div className="flex h-12 items-center justify-between border-b border-border px-4">
+        <div className="fixed inset-0 md:absolute md:inset-auto md:right-0 md:top-0 md:bottom-0 md:w-96 bg-card md:border-l border-border animate-slide-in-right z-30">
+          <div className="flex h-12 md:h-12 items-center justify-between border-b border-border px-4">
             <h3 className="font-semibold">Alert Details</h3>
-            <Button size="icon" variant="ghost" onClick={() => setSelectedFeature(null)}>
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFeature(null)}>
               <X className="h-4 w-4" />
             </Button>
           </div>

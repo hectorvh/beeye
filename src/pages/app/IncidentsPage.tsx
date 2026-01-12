@@ -76,22 +76,22 @@ export default function IncidentsPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="border-b border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Incidents</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">Incidents</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Track and manage active wildfire incidents
             </p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Create Incident
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Stats - responsive grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Active Incidents"
             value={mockIncidents.filter(i => !["extinguished", "false_alarm"].includes(i.status)).length}
@@ -115,17 +115,17 @@ export default function IncidentsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4 border-b border-border bg-card/50 px-6 py-3">
-        <div className="relative flex-1 max-w-sm">
+      {/* Filters - scrollable on mobile */}
+      <div className="flex items-center gap-2 md:gap-4 border-b border-border bg-card/50 px-4 md:px-6 py-3 overflow-x-auto">
+        <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search incidents..."
+            placeholder="Search..."
             className="pl-9 bg-surface-1"
           />
         </div>
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-40 bg-surface-1">
+          <SelectTrigger className="w-32 md:w-40 bg-surface-1 shrink-0">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -138,7 +138,7 @@ export default function IncidentsPage() {
           </SelectContent>
         </Select>
         <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-          <SelectTrigger className="w-40 bg-surface-1">
+          <SelectTrigger className="w-32 md:w-40 bg-surface-1 shrink-0">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
@@ -153,28 +153,28 @@ export default function IncidentsPage() {
 
       {/* Incident List */}
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-4">
+        <div className="p-4 md:p-6 space-y-3 md:space-y-4">
           {filteredIncidents.map((incident) => (
             <Link
               key={incident.id}
               to={`/app/incidents/${incident.id}`}
               className={cn(
-                "block rounded-xl border bg-card p-5 transition-all hover:bg-card/80",
+                "block rounded-xl border bg-card p-4 md:p-5 transition-all hover:bg-card/80 active:scale-[0.99]",
                 incident.priority === "critical" && "border-critical/30",
                 incident.priority === "high" && "border-warning/30",
               )}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3 md:gap-4">
                 {/* Icon */}
                 <div className={cn(
-                  "flex h-14 w-14 items-center justify-center rounded-xl",
+                  "flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-xl shrink-0",
                   incident.priority === "critical" && "bg-critical/20",
                   incident.priority === "high" && "bg-warning/20",
                   incident.priority === "medium" && "bg-info/20",
                   incident.priority === "low" && "bg-muted",
                 )}>
                   <Flame className={cn(
-                    "h-7 w-7",
+                    "h-5 w-5 md:h-7 md:w-7",
                     incident.priority === "critical" && "text-critical",
                     incident.priority === "high" && "text-warning",
                     incident.priority === "medium" && "text-info",
@@ -184,67 +184,41 @@ export default function IncidentsPage() {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold">{incident.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h3 className="text-base md:text-lg font-semibold">{incident.name}</h3>
                     <StatusBadge variant={getStatusVariant(incident.status)}>
                       {incident.status.replace("_", " ").toUpperCase()}
                     </StatusBadge>
-                    <StatusBadge variant={getPriorityVariant(incident.priority)} dot={false}>
-                      {incident.priority.toUpperCase()} PRIORITY
-                    </StatusBadge>
                   </div>
                   
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4" />
-                      {incident.location.coordinates[1].toFixed(4)}, {incident.location.coordinates[0].toFixed(4)}
+                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-[10px] md:text-sm text-muted-foreground mb-2 md:mb-3">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                      {formatTimeAgo(incident.createdAt)}
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4" />
-                      Started {formatTimeAgo(incident.createdAt)}
+                    <span className="flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3 md:h-4 md:w-4" />
+                      {incident.alertIds.length} alert{incident.alertIds.length !== 1 ? 's' : ''}
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <AlertTriangle className="h-4 w-4" />
-                      {incident.alertIds.length} linked alert{incident.alertIds.length !== 1 ? 's' : ''}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      Confidence: <strong className="text-foreground">{incident.confidence}%</strong>
+                    <span className="hidden sm:flex items-center gap-1">
+                      <strong className="text-foreground">{incident.confidence}%</strong> confidence
                     </span>
                   </div>
 
-                  {/* Quick actions preview */}
-                  <div className="flex items-center gap-2">
+                  {/* Quick actions - hidden on mobile */}
+                  <div className="hidden sm:flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
-                      View Predictions
+                      Predictions
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      Perimeter History
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Evidence Pack
+                      Perimeter
                     </Badge>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline">
-                    View Details
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View on Map</DropdownMenuItem>
-                      <DropdownMenuItem>Run Prediction</DropdownMenuItem>
-                      <DropdownMenuItem>Export Evidence Pack</DropdownMenuItem>
-                      <DropdownMenuItem>Assign Commander</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <div className="flex items-center gap-2 shrink-0">
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
             </Link>
