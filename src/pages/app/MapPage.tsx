@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import type { Map as LeafletMap } from "leaflet";
 import { 
   Layers, 
   AlertTriangle, 
@@ -27,12 +29,181 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockAlerts, mockIncidents, mockWeatherStations, mockMissions } from "@/data/mockData";
 import { cn } from "@/lib/utils";
+import L from "leaflet";
+
+// Fix for default marker icons in Leaflet with Vite
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  iconRetinaUrl: iconRetina,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom marker component for alerts
+function AlertMarker({ alert, onClick }: { alert: typeof mockAlerts[0]; onClick: () => void }) {
+  const getMarkerColor = () => {
+    switch (alert.severity) {
+      case "critical": return "#ef4444";
+      case "high": return "#f59e0b";
+      case "medium": return "#f59e0b";
+      case "low": return "#6b7280";
+      default: return "#6b7280";
+    }
+  };
+
+  const icon = L.divIcon({
+    className: "custom-marker",
+    html: `<div style="
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid ${getMarkerColor()};
+      background: ${getMarkerColor()}33;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      ${alert.severity === "critical" ? "animation: pulse 2s infinite;" : ""}
+    ">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${getMarkerColor()}" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+  });
+
+  return (
+    <Marker
+      position={[alert.location.coordinates[1], alert.location.coordinates[0]]}
+      icon={icon}
+      eventHandlers={{ click: onClick }}
+    >
+      <Popup>
+        <div className="p-2">
+          <p className="font-semibold">{alert.severity.toUpperCase()} Alert</p>
+          <p className="text-sm text-muted-foreground">Confidence: {alert.confidence}%</p>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+// Custom marker component for weather stations
+function WeatherStationMarker({ station }: { station: typeof mockWeatherStations[0] }) {
+  const getMarkerColor = () => {
+    switch (station.status) {
+      case "online": return "#22c55e";
+      case "offline": return "#ef4444";
+      case "degraded": return "#f59e0b";
+      default: return "#6b7280";
+    }
+  };
+
+  const icon = L.divIcon({
+    className: "custom-marker",
+    html: `<div style="
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid ${getMarkerColor()};
+      background: ${getMarkerColor()}33;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    ">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${getMarkerColor()}" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+      </svg>
+    </div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+
+  return (
+    <Marker
+      position={[station.location.coordinates[1], station.location.coordinates[0]]}
+      icon={icon}
+    >
+      <Popup>
+        <div className="p-2">
+          <p className="font-semibold">{station.name}</p>
+          <p className="text-sm text-muted-foreground">Status: {station.status}</p>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+// Map controls component
+function MapControls({ map }: { map: LeafletMap | null }) {
+  if (!map) return null;
+
+  return (
+    <div className="absolute right-3 top-3 md:right-4 md:top-4 flex flex-col gap-2 z-[1000]">
+      <Button
+        size="icon"
+        variant="secondary"
+        className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm"
+        onClick={() => map.zoomIn()}
+      >
+        <ZoomIn className="h-4 w-4" />
+      </Button>
+      <Button
+        size="icon"
+        variant="secondary"
+        className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm"
+        onClick={() => map.zoomOut()}
+      >
+        <ZoomOut className="h-4 w-4" />
+      </Button>
+      <Button
+        size="icon"
+        variant="secondary"
+        className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm"
+        onClick={() => {
+          map.locate({ setView: true, maxZoom: 16 });
+        }}
+      >
+        <Crosshair className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// Component to access map instance
+function MapController({ onMapReady }: { onMapReady: (map: LeafletMap) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    onMapReady(map);
+    // Trigger map resize after a short delay to ensure container is rendered
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+  }, [map]);
+  return null;
+}
 
 export default function MapPage() {
   const [layerPanelOpen, setLayerPanelOpen] = useState(true);
   const [selectedFeature, setSelectedFeature] = useState<typeof mockAlerts[0] | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeValue, setTimeValue] = useState([100]);
+  const [map, setMap] = useState<LeafletMap | null>(null);
 
   const layers = [
     { id: "alerts", label: "Active Alerts", icon: AlertTriangle, count: mockAlerts.length, color: "text-critical" },
@@ -52,105 +223,49 @@ export default function MapPage() {
     );
   };
 
-  return (
-    <div className="relative flex h-full flex-col md:flex-row">
-      {/* Map Container */}
-      <div className="flex-1 relative bg-surface-1">
-        {/* Placeholder map background */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              linear-gradient(to bottom, hsl(var(--background)) 0%, transparent 10%, transparent 90%, hsl(var(--background)) 100%),
-              radial-gradient(circle at 30% 40%, hsl(var(--critical) / 0.1) 0%, transparent 40%),
-              radial-gradient(circle at 70% 60%, hsl(var(--warning) / 0.1) 0%, transparent 30%),
-              linear-gradient(135deg, hsl(222 47% 10%) 0%, hsl(222 47% 15%) 100%)
-            `,
-          }}
-        >
-          {/* Map grid overlay */}
-          <div 
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `
-                linear-gradient(hsl(var(--border)) 1px, transparent 1px),
-                linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px',
-            }}
-          />
+  // Calculate center from all features
+  const getMapCenter = (): [number, number] => {
+    if (mockAlerts.length > 0) {
+      const firstAlert = mockAlerts[0];
+      return [firstAlert.location.coordinates[1], firstAlert.location.coordinates[0]];
+    }
+    return [36.7783, -119.4179]; // Default to California center
+  };
 
-          {/* Mock map markers */}
-          {mockAlerts.filter((_, i) => i < 3).map((alert, i) => (
-            <div
+  return (
+    <div className="relative flex h-full flex-col md:flex-row" style={{ height: "100vh", minHeight: "100%" }}>
+      {/* Map Container */}
+      <div className="flex-1 relative bg-surface-1" style={{ height: "100%", minHeight: "100%" }}>
+        <MapContainer
+          center={getMapCenter()}
+          zoom={8}
+          className="h-full w-full z-0"
+          style={{ height: "100%", width: "100%", minHeight: "100%" }}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <MapController onMapReady={setMap} />
+          
+          {/* Alert markers */}
+          {activeLayers.includes("alerts") && mockAlerts.map((alert) => (
+            <AlertMarker
               key={alert.id}
-              className={cn(
-                "absolute cursor-pointer transition-transform hover:scale-110 active:scale-95",
-                alert.severity === "critical" && "pulse-critical"
-              )}
-              style={{
-                left: `${20 + i * 25}%`,
-                top: `${30 + i * 15}%`,
-              }}
+              alert={alert}
               onClick={() => setSelectedFeature(alert)}
-            >
-              <div className={cn(
-                "flex h-10 w-10 md:h-10 md:w-10 items-center justify-center rounded-full border-2",
-                alert.severity === "critical" && "border-critical bg-critical/20",
-                alert.severity === "high" && "border-warning bg-warning/20",
-                alert.severity === "medium" && "border-warning/70 bg-warning/10",
-                alert.severity === "low" && "border-muted bg-muted/20",
-              )}>
-                <AlertTriangle className={cn(
-                  "h-5 w-5",
-                  alert.severity === "critical" && "text-critical",
-                  alert.severity === "high" && "text-warning",
-                  alert.severity === "medium" && "text-warning/70",
-                  alert.severity === "low" && "text-muted-foreground",
-                )} />
-              </div>
-            </div>
+            />
           ))}
 
           {/* Weather station markers */}
-          {mockWeatherStations.slice(0, 4).map((station, i) => (
-            <div
-              key={station.id}
-              className="absolute cursor-pointer"
-              style={{
-                left: `${15 + i * 20}%`,
-                top: `${50 + (i % 2) * 20}%`,
-              }}
-            >
-              <div className={cn(
-                "flex h-6 w-6 items-center justify-center rounded-full border",
-                station.status === "online" && "border-success bg-success/20",
-                station.status === "offline" && "border-critical bg-critical/20",
-                station.status === "degraded" && "border-warning bg-warning/20",
-              )}>
-                <Radio className={cn(
-                  "h-3 w-3",
-                  station.status === "online" && "text-success",
-                  station.status === "offline" && "text-critical",
-                  station.status === "degraded" && "text-warning",
-                )} />
-              </div>
-            </div>
+          {activeLayers.includes("weather") && mockWeatherStations.map((station) => (
+            <WeatherStationMarker key={station.id} station={station} />
           ))}
-        </div>
+        </MapContainer>
 
-        {/* Map controls - repositioned for mobile */}
-        <div className="absolute right-3 top-3 md:right-4 md:top-4 flex flex-col gap-2">
-          <Button size="icon" variant="secondary" className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm">
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button size="icon" variant="secondary" className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm">
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button size="icon" variant="secondary" className="h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm">
-            <Crosshair className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Map controls */}
+        <MapControls map={map} />
 
         {/* Time slider - responsive width */}
         <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 glass-panel rounded-xl p-3 md:p-4 w-[calc(100%-24px)] max-w-[500px]">
