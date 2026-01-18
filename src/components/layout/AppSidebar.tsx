@@ -10,7 +10,6 @@ import {
   Settings,
   Activity,
   BarChart3,
-  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,8 +35,8 @@ export function AppSidebar() {
     <aside className="flex h-full w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-          <Eye className="h-5 w-5 text-primary-foreground" />
+        <div className="flex h-9 w-9 items-center justify-center">
+          <img src="/logo3.png" alt="BeEye Logo" className="h-9 w-9" />
         </div>
         <div className="flex flex-col">
           <span className="text-lg font-bold text-foreground tracking-tight">BeEye</span>

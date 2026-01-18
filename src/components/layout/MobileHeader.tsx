@@ -1,4 +1,4 @@
-import { Bell, Menu, Eye, Wifi, WifiOff, X } from "lucide-react";
+import { Bell, Menu, Wifi, WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -53,8 +53,8 @@ export function MobileHeader() {
     <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
       {/* Logo */}
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Eye className="h-4 w-4 text-primary-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center">
+          <img src="/logo3.png" alt="BeEye Logo" className="h-8 w-8" />
         </div>
         <span className="text-base font-bold tracking-tight">BeEye</span>
       </div>
@@ -105,8 +105,8 @@ export function MobileHeader() {
           <SheetContent side="right" className="w-[280px] p-0">
             <SheetHeader className="p-4 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                  <Eye className="h-5 w-5 text-primary-foreground" />
+                <div className="flex h-9 w-9 items-center justify-center">
+                  <img src="/logo3.png" alt="BeEye Logo" className="h-9 w-9" />
                 </div>
                 <div className="flex flex-col text-left">
                   <SheetTitle>BeEye</SheetTitle>
