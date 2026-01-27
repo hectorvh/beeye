@@ -54,7 +54,7 @@ export function MobileHeader() {
       {/* Logo */}
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center">
-          <img src="/logo3.png" alt="BeEye Logo" className="h-8 w-8" />
+          <img src="/logo4.png" alt="BeEye Logo" className="h-8 w-8" />
         </div>
         <span className="text-base font-bold tracking-tight">BeEye</span>
       </div>
@@ -106,7 +106,7 @@ export function MobileHeader() {
             <SheetHeader className="p-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center">
-                  <img src="/logo3.png" alt="BeEye Logo" className="h-9 w-9" />
+                  <img src="/logo4.png" alt="BeEye Logo" className="h-9 w-9" />
                 </div>
                 <div className="flex flex-col text-left">
                   <SheetTitle>BeEye</SheetTitle>

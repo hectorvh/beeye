@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="flex h-11 w-11 items-center justify-center">
-              <img src="/logo3.png" alt="BeEye Logo" className="h-11 w-11" />
+              <img src="/logo4.png" alt="BeEye Logo" className="h-11 w-11" />
             </div>
             <div>
               <span className="text-2xl font-bold text-foreground tracking-tight">BeEye</span>
@@ -163,7 +163,7 @@ export default function LoginPage() {
                 <div className="w-32 h-32 mx-auto rounded-full bg-warning/20 flex items-center justify-center">
                   <div className="w-24 h-24 rounded-full bg-warning/30 flex items-center justify-center pulse-warning">
                     <div className="w-16 h-16 rounded-full bg-warning/50 flex items-center justify-center">
-                      <img src="/logo2.png" alt="BeEye Logo" className="w-12 h-12" />
+                      <img src="/logo4n.png" alt="BeEye Logo" className="w-12 h-12" />
                     </div>
                   </div>
                 </div>
