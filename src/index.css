@@ -19,6 +19,17 @@
   z-index: 0;
 }
 
+/* Map overlay positioning - desktop override */
+@media (min-width: 768px) {
+  .map-overlay-slider {
+    bottom: 1rem !important;
+  }
+  
+  .map-overlay-legend {
+    bottom: 1rem !important;
+  }
+}
+
 .leaflet-popup-content-wrapper {
   background: hsl(var(--card)) !important;
   color: hsl(var(--card-foreground)) !important;

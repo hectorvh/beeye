@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { mockAlerts, mockIncidents, mockWeatherStations, mockMissions } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import L from "leaflet";
@@ -199,11 +200,43 @@ function MapController({ onMapReady }: { onMapReady: (map: LeafletMap) => void }
 }
 
 export default function MapPage() {
-  const [layerPanelOpen, setLayerPanelOpen] = useState(true);
+  // Track if we're on mobile
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768; // md breakpoint
+    }
+    return true; // Default to mobile for SSR
+  });
+
+  // Single source of truth for layers panel state (mobile drawer + desktop collapsible)
+  const [isLayersOpen, setIsLayersOpen] = useState(() => {
+    // On desktop, default to open. On mobile, default to closed.
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768; // md breakpoint
+    }
+    return false; // Default to closed for SSR
+  });
   const [selectedFeature, setSelectedFeature] = useState<typeof mockAlerts[0] | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeValue, setTimeValue] = useState([100]);
   const [map, setMap] = useState<LeafletMap | null>(null);
+
+  // Update mobile state on resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // If switching to desktop, open panel. If switching to mobile, close it.
+      if (!mobile && !isLayersOpen) {
+        setIsLayersOpen(true);
+      } else if (mobile && isLayersOpen) {
+        setIsLayersOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isLayersOpen]);
 
   const layers = [
     { id: "alerts", label: "Active Alerts", icon: AlertTriangle, count: mockAlerts.length, color: "text-critical" },
@@ -232,195 +265,354 @@ export default function MapPage() {
     return [36.7783, -119.4179]; // Default to California center
   };
 
+  // Calculate bottom nav height (MobileNav is ~72px with padding + safe area)
+  const bottomNavHeight = 72; // Approximate height of bottom nav bar
+
   return (
-    <div className="relative flex h-full flex-col md:flex-row" style={{ height: "100vh", minHeight: "100%" }}>
-      {/* Map Container */}
-      <div className="flex-1 relative bg-surface-1" style={{ height: "100%", minHeight: "100%" }}>
-        <MapContainer
-          center={getMapCenter()}
-          zoom={8}
-          className="h-full w-full z-0"
-          style={{ height: "100%", width: "100%", minHeight: "100%" }}
-          scrollWheelZoom={true}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <MapController onMapReady={setMap} />
-          
-          {/* Alert markers */}
-          {activeLayers.includes("alerts") && mockAlerts.map((alert) => (
-            <AlertMarker
-              key={alert.id}
-              alert={alert}
-              onClick={() => setSelectedFeature(alert)}
-            />
-          ))}
-
-          {/* Weather station markers */}
-          {activeLayers.includes("weather") && mockWeatherStations.map((station) => (
-            <WeatherStationMarker key={station.id} station={station} />
-          ))}
-        </MapContainer>
-
-        {/* Map controls */}
-        <MapControls map={map} />
-
-        {/* Time slider - responsive width */}
-        <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 glass-panel rounded-xl p-3 md:p-4 w-[calc(100%-24px)] max-w-[500px]">
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="flex items-center gap-1 md:gap-2">
-              <Button size="icon" variant="ghost" className="h-8 w-8">
-                <SkipBack className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-8 w-8"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8">
-                <SkipForward className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex-1">
-              <Slider
-                value={timeValue}
-                onValueChange={setTimeValue}
-                max={100}
-                step={1}
-                className="cursor-pointer"
-              />
-            </div>
-            <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-              <Clock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-              <span className="font-mono text-foreground">Live</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Legend - hide on very small screens, show on bottom-left on larger mobile */}
-        <div className="hidden sm:block absolute left-3 bottom-20 md:left-4 md:bottom-4 glass-panel rounded-xl p-2 md:p-3">
-          <p className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2">Fire Risk</p>
-          <div className="flex gap-1">
-            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-success" />
-            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-warning/50" />
-            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-warning" />
-            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-critical/70" />
-            <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-critical" />
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[8px] md:text-[10px] text-muted-foreground">Low</span>
-            <span className="text-[8px] md:text-[10px] text-muted-foreground">Extreme</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Layer Panel Toggle - adjust position for mobile */}
-      <Button
-        size="icon"
-        variant="secondary"
-        className={cn(
-          "absolute top-3 z-10 h-10 w-10 md:h-9 md:w-9 bg-card/90 backdrop-blur-sm transition-all",
-          layerPanelOpen ? "left-[calc(100%-48px)] md:left-[316px]" : "left-3 md:left-4"
-        )}
-        onClick={() => setLayerPanelOpen(!layerPanelOpen)}
-      >
-        {layerPanelOpen ? <ChevronLeft className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
-      </Button>
-
-      {/* Layer Panel - Sheet on mobile, static on desktop */}
-      <div className={cn(
-        "absolute left-0 top-0 bottom-0 w-full md:w-80 bg-card border-r border-border transition-transform duration-300 z-20",
-        !layerPanelOpen && "-translate-x-full"
-      )}>
-        <div className="flex h-12 items-center justify-between border-b border-border px-4">
-          <h3 className="font-semibold">Map Layers</h3>
-          <Button size="icon" variant="ghost" className="md:hidden h-8 w-8" onClick={() => setLayerPanelOpen(false)}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <ScrollArea className="h-[calc(100%-48px)]">
-          <div className="p-4 space-y-4">
-            {/* Layer toggles */}
-            <div className="space-y-2">
-              {layers.map((layer) => (
-                <label
-                  key={layer.id}
-                  className="flex items-center gap-3 rounded-lg border border-border bg-surface-1 p-3 cursor-pointer hover:bg-surface-2 transition-colors"
+    <div 
+      className="flex flex-col h-full w-full"
+      style={{ 
+        "--bottom-nav-height": `${bottomNavHeight}px`
+      } as React.CSSProperties & { '--bottom-nav-height': string }}
+    >
+      {/* Main content area - flex layout for proper map sizing */}
+      <div className="flex-1 min-h-0 relative flex flex-col md:flex-row">
+        {/* Desktop Layers Panel - Collapsible side panel */}
+        <div className={cn(
+          "hidden md:block bg-card border-r border-border transition-all duration-300 overflow-hidden",
+          isLayersOpen ? "w-80" : "w-0"
+        )}>
+          {isLayersOpen && (
+            <div className="h-full flex flex-col">
+              <div className="flex h-12 items-center justify-between border-b border-border px-4">
+                <h3 className="font-semibold">Map Layers</h3>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => setIsLayersOpen(false)}
+                  aria-label="Collapse Layers Panel"
                 >
-                  <Checkbox
-                    checked={activeLayers.includes(layer.id)}
-                    onCheckedChange={() => toggleLayer(layer.id)}
-                  />
-                  <layer.icon className={cn("h-4 w-4", layer.color)} />
-                  <span className="flex-1 text-sm font-medium">{layer.label}</span>
-                  {layer.count !== null && (
-                    <Badge variant="secondary" className="text-xs">
-                      {layer.count}
-                    </Badge>
-                  )}
-                </label>
-              ))}
-            </div>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-4">
+                  {/* Layer toggles */}
+                  <div className="space-y-2">
+                    {layers.map((layer) => (
+                      <label
+                        key={layer.id}
+                        className="flex items-center gap-3 rounded-lg border border-border bg-surface-1 p-3 cursor-pointer hover:bg-surface-2 transition-colors"
+                      >
+                        <Checkbox
+                          checked={activeLayers.includes(layer.id)}
+                          onCheckedChange={() => toggleLayer(layer.id)}
+                        />
+                        <layer.icon className={cn("h-4 w-4", layer.color)} />
+                        <span className="flex-1 text-sm font-medium">{layer.label}</span>
+                        {layer.count !== null && (
+                          <Badge variant="secondary" className="text-xs">
+                            {layer.count}
+                          </Badge>
+                        )}
+                      </label>
+                    ))}
+                  </div>
 
-            {/* Quick stats */}
-            <div className="rounded-lg border border-border p-4 space-y-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Active Situation
-              </h4>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg bg-surface-2 p-3 text-center">
-                  <p className="text-2xl font-bold text-critical">{mockAlerts.filter(a => a.status === 'new').length}</p>
-                  <p className="text-xs text-muted-foreground">New Alerts</p>
+                  {/* Quick stats */}
+                  <div className="rounded-lg border border-border p-4 space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Active Situation
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-surface-2 p-3 text-center">
+                        <p className="text-2xl font-bold text-critical">{mockAlerts.filter(a => a.status === 'new').length}</p>
+                        <p className="text-xs text-muted-foreground">New Alerts</p>
+                      </div>
+                      <div className="rounded-lg bg-surface-2 p-3 text-center">
+                        <p className="text-2xl font-bold text-warning">{mockIncidents.length}</p>
+                        <p className="text-xs text-muted-foreground">Active Incidents</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Alert list preview */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Recent Alerts
+                    </h4>
+                    {mockAlerts.slice(0, 3).map((alert) => (
+                      <div
+                        key={alert.id}
+                        className="rounded-lg border border-border bg-surface-1 p-3 cursor-pointer hover:bg-surface-2 transition-colors"
+                        onClick={() => setSelectedFeature(alert)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <StatusBadge
+                              variant={
+                                alert.severity === "critical" ? "critical" :
+                                alert.severity === "high" ? "warning" :
+                                "neutral"
+                              }
+                              pulse={alert.severity === "critical"}
+                            >
+                              {alert.severity.toUpperCase()}
+                            </StatusBadge>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {Math.floor((Date.now() - new Date(alert.createdAt).getTime()) / 60000)}m ago
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground line-clamp-1">
+                          {alert.topDrivers[0]}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="rounded-lg bg-surface-2 p-3 text-center">
-                  <p className="text-2xl font-bold text-warning">{mockIncidents.length}</p>
-                  <p className="text-xs text-muted-foreground">Active Incidents</p>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
+
+        {/* Map Container - flex-1 min-h-0 for proper sizing */}
+        <div className="flex-1 min-h-0 relative bg-surface-1 overflow-hidden">
+          <MapContainer
+            center={getMapCenter()}
+            zoom={8}
+            className="h-full w-full z-0"
+            style={{ 
+              height: "100%", 
+              width: "100%",
+              position: "relative"
+            }}
+            scrollWheelZoom={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <MapController onMapReady={setMap} />
+            
+            {/* Alert markers */}
+            {activeLayers.includes("alerts") && mockAlerts.map((alert) => (
+              <AlertMarker
+                key={alert.id}
+                alert={alert}
+                onClick={() => setSelectedFeature(alert)}
+              />
+            ))}
+
+            {/* Weather station markers */}
+            {activeLayers.includes("weather") && mockWeatherStations.map((station) => (
+              <WeatherStationMarker key={station.id} station={station} />
+            ))}
+          </MapContainer>
+
+          {/* Map controls */}
+          <MapControls map={map} />
+
+          {/* Overlay Layer - Outside map container to avoid clipping */}
+          <div className="absolute inset-0 z-[3000] pointer-events-none">
+            {/* Desktop Toggle Button - Show when panel is collapsed */}
+            {!isLayersOpen && (
+              <Button
+                size="icon"
+                variant="secondary"
+                className={cn(
+                  "hidden md:flex absolute top-3 left-4 z-[3500] h-9 w-9 bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto",
+                  "touch-target"
+                )}
+                onClick={() => setIsLayersOpen(true)}
+                aria-label="Open Map Layers"
+              >
+                <Layers className="h-4 w-4" />
+              </Button>
+            )}
+
+            {/* Mobile Toggle Button - Always visible, positioned below header */}
+            <Button
+              size="icon"
+              variant="secondary"
+              className={cn(
+                "fixed left-4 z-[3500] h-11 w-11 min-h-[44px] min-w-[44px] bg-card/95 backdrop-blur-sm shadow-lg",
+                "md:hidden touch-target pointer-events-auto"
+              )}
+              style={{ 
+                top: `calc(56px + env(safe-area-inset-top, 0px) + 0.5rem)`, // 56px = header height, + 0.5rem spacing
+                left: `calc(1rem + env(safe-area-inset-left, 0px))`
+              }}
+              onClick={() => setIsLayersOpen(!isLayersOpen)}
+              aria-label={isLayersOpen ? "Close Map Layers" : "Open Map Layers"}
+            >
+              {isLayersOpen ? <X className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
+            </Button>
+
+            {/* Time slider - Hide on mobile when layers open */}
+            {(!isMobile || !isLayersOpen) && (
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 glass-panel rounded-xl p-3 md:p-4 w-[calc(100%-24px)] max-w-[500px] pointer-events-auto map-overlay-slider"
+                style={{
+                  bottom: `calc(var(--bottom-nav-height, ${bottomNavHeight}px) + env(safe-area-inset-bottom, 0px) + 0.75rem)`,
+                }}
+              >
+                <div className="flex items-center gap-2 md:gap-4">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                      <SkipBack className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8"
+                      onClick={() => setIsPlaying(!isPlaying)}
+                    >
+                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                      <SkipForward className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex-1">
+                    <Slider
+                      value={timeValue}
+                      onValueChange={setTimeValue}
+                      max={100}
+                      step={1}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                    <Clock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+                    <span className="font-mono text-foreground">Live</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Alert list preview */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Recent Alerts
-              </h4>
-              {mockAlerts.slice(0, 3).map((alert) => (
-                <div
-                  key={alert.id}
-                  className="rounded-lg border border-border bg-surface-1 p-3 cursor-pointer hover:bg-surface-2 transition-colors"
-                  onClick={() => setSelectedFeature(alert)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <StatusBadge
-                        variant={
-                          alert.severity === "critical" ? "critical" :
-                          alert.severity === "high" ? "warning" :
-                          "neutral"
-                        }
-                        pulse={alert.severity === "critical"}
-                      >
-                        {alert.severity.toUpperCase()}
-                      </StatusBadge>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {Math.floor((Date.now() - new Date(alert.createdAt).getTime()) / 60000)}m ago
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-1">
-                    {alert.topDrivers[0]}
-                  </p>
+            {/* Fire Risk Legend - Hide on mobile when layers open */}
+            {(!isMobile || !isLayersOpen) && (
+              <div 
+                className="hidden sm:block absolute glass-panel rounded-xl p-2 md:p-3 pointer-events-auto md:left-4 map-overlay-legend"
+                style={{
+                  bottom: `calc(var(--bottom-nav-height, ${bottomNavHeight}px) + env(safe-area-inset-bottom, 0px) + 5.5rem)`, // Above slider (slider ~4.5rem + spacing)
+                  left: "0.75rem",
+                }}
+              >
+                <p className="text-[10px] md:text-xs font-semibold text-muted-foreground mb-2">Fire Risk</p>
+                <div className="flex gap-1">
+                  <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-success" />
+                  <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-warning/50" />
+                  <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-warning" />
+                  <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-critical/70" />
+                  <div className="w-4 md:w-6 h-2 md:h-3 rounded-sm bg-critical" />
                 </div>
-              ))}
-            </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-[8px] md:text-[10px] text-muted-foreground">Low</span>
+                  <span className="text-[8px] md:text-[10px] text-muted-foreground">Extreme</span>
+                </div>
+              </div>
+            )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
+
+      {/* Mobile Sheet Drawer for Map Layers - only render on mobile */}
+      {isMobile && (
+        <Sheet open={isLayersOpen} onOpenChange={setIsLayersOpen}>
+          <SheetContent 
+            side="left" 
+            className="w-[85vw] sm:w-[320px] p-0 bg-card border-r border-border z-[1000]"
+          >
+          <SheetHeader className="px-4 pt-4 pb-2 border-b border-border">
+            <SheetTitle className="text-left">Map Layers</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="h-[calc(100vh-64px)]">
+            <div className="p-4 space-y-4">
+              {/* Layer toggles */}
+              <div className="space-y-2">
+                {layers.map((layer) => (
+                  <label
+                    key={layer.id}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-surface-1 p-3 cursor-pointer hover:bg-surface-2 transition-colors"
+                  >
+                    <Checkbox
+                      checked={activeLayers.includes(layer.id)}
+                      onCheckedChange={() => toggleLayer(layer.id)}
+                    />
+                    <layer.icon className={cn("h-4 w-4", layer.color)} />
+                    <span className="flex-1 text-sm font-medium">{layer.label}</span>
+                    {layer.count !== null && (
+                      <Badge variant="secondary" className="text-xs">
+                        {layer.count}
+                      </Badge>
+                    )}
+                  </label>
+                ))}
+              </div>
+
+              {/* Quick stats */}
+              <div className="rounded-lg border border-border p-4 space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Active Situation
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg bg-surface-2 p-3 text-center">
+                    <p className="text-2xl font-bold text-critical">{mockAlerts.filter(a => a.status === 'new').length}</p>
+                    <p className="text-xs text-muted-foreground">New Alerts</p>
+                  </div>
+                  <div className="rounded-lg bg-surface-2 p-3 text-center">
+                    <p className="text-2xl font-bold text-warning">{mockIncidents.length}</p>
+                    <p className="text-xs text-muted-foreground">Active Incidents</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Alert list preview */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Recent Alerts
+                </h4>
+                {mockAlerts.slice(0, 3).map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="rounded-lg border border-border bg-surface-1 p-3 cursor-pointer hover:bg-surface-2 transition-colors"
+                    onClick={() => {
+                      setSelectedFeature(alert);
+                      setIsLayersOpen(false);
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <StatusBadge
+                          variant={
+                            alert.severity === "critical" ? "critical" :
+                            alert.severity === "high" ? "warning" :
+                            "neutral"
+                          }
+                          pulse={alert.severity === "critical"}
+                        >
+                          {alert.severity.toUpperCase()}
+                        </StatusBadge>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {Math.floor((Date.now() - new Date(alert.createdAt).getTime()) / 60000)}m ago
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-1">
+                      {alert.topDrivers[0]}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ScrollArea>
+        </SheetContent>
+        </Sheet>
+      )}
+
 
       {/* Feature Detail Drawer - Use Sheet for mobile */}
       {selectedFeature && (
