@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { Map as LeafletMap } from "leaflet";
 import { 
@@ -199,6 +199,120 @@ function MapController({ onMapReady }: { onMapReady: (map: LeafletMap) => void }
   return null;
 }
 
+// Robust map auto-resize component using ResizeObserver
+function MapAutoResize({ 
+  map, 
+  isLayersOpen, 
+  containerRef 
+}: { 
+  map: LeafletMap | null; 
+  isLayersOpen: boolean;
+  containerRef: React.RefObject<HTMLDivElement>;
+}) {
+  // Store debounce timers in refs to persist across renders
+  const resizeDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const observerDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Invalidate map size while preserving user view
+  const invalidateMapSize = useCallback(() => {
+    if (!map) return;
+    
+    // Preserve current view
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    
+    // Invalidate size
+    map.invalidateSize({ animate: false });
+    
+    // Restore view (only if it changed, to avoid jumpiness)
+    requestAnimationFrame(() => {
+      if (map && (map.getCenter().distanceTo(center) > 0.0001 || map.getZoom() !== zoom)) {
+        map.setView(center, zoom, { animate: false });
+      }
+    });
+  }, [map]);
+
+  // Debounced invalidate for ResizeObserver (50ms debounce)
+  const debouncedInvalidate = useCallback(() => {
+    if (observerDebounceTimerRef.current) {
+      clearTimeout(observerDebounceTimerRef.current);
+    }
+    observerDebounceTimerRef.current = setTimeout(() => {
+      invalidateMapSize();
+    }, 50);
+  }, [invalidateMapSize]);
+
+  // Handle panel state changes with transition timing
+  useEffect(() => {
+    if (!map) return;
+    
+    // Immediate invalidate on next frame
+    requestAnimationFrame(() => {
+      invalidateMapSize();
+    });
+    
+    // Also invalidate after CSS transition completes (300ms as per our transition duration)
+    const transitionTimeout = setTimeout(() => {
+      invalidateMapSize();
+    }, 350); // Slightly longer than 300ms transition
+    
+    return () => clearTimeout(transitionTimeout);
+  }, [map, isLayersOpen, invalidateMapSize]);
+
+  // ResizeObserver to detect actual DOM size changes
+  useEffect(() => {
+    if (!map || !containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Debounce ResizeObserver callbacks
+      debouncedInvalidate();
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+      if (observerDebounceTimerRef.current) {
+        clearTimeout(observerDebounceTimerRef.current);
+      }
+    };
+  }, [map, containerRef, debouncedInvalidate]);
+
+  // Handle window resize and orientation change
+  useEffect(() => {
+    if (!map) return;
+    
+    const handleResize = () => {
+      if (resizeDebounceTimerRef.current) {
+        clearTimeout(resizeDebounceTimerRef.current);
+      }
+      resizeDebounceTimerRef.current = setTimeout(() => {
+        invalidateMapSize();
+      }, 100);
+    };
+    
+    const handleOrientationChange = () => {
+      // Orientation change needs a longer delay for layout to settle
+      setTimeout(() => {
+        invalidateMapSize();
+      }, 200);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      if (resizeDebounceTimerRef.current) {
+        clearTimeout(resizeDebounceTimerRef.current);
+      }
+    };
+  }, [map, invalidateMapSize]);
+
+  return null;
+}
+
 export default function MapPage() {
   // Track if we're on mobile
   const [isMobile, setIsMobile] = useState(() => {
@@ -220,6 +334,7 @@ export default function MapPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeValue, setTimeValue] = useState([100]);
   const [map, setMap] = useState<LeafletMap | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   // Update mobile state on resize
   useEffect(() => {
@@ -275,12 +390,17 @@ export default function MapPage() {
         "--bottom-nav-height": `${bottomNavHeight}px`
       } as React.CSSProperties & { '--bottom-nav-height': string }}
     >
-      {/* Main content area - flex layout for proper map sizing */}
-      <div className="flex-1 min-h-0 relative flex flex-col md:flex-row">
+      {/* Main content area - CSS Grid layout for proper map sizing */}
+      <div className={cn(
+        "flex-1 min-h-0 relative grid h-full",
+        "grid-cols-1",
+        "md:transition-[grid-template-columns] md:duration-300",
+        isLayersOpen ? "md:grid-cols-[320px_1fr]" : "md:grid-cols-[0_1fr]"
+      )}>
         {/* Desktop Layers Panel - Collapsible side panel */}
         <div className={cn(
-          "hidden md:block bg-card border-r border-border transition-all duration-300 overflow-hidden",
-          isLayersOpen ? "w-80" : "w-0"
+          "hidden md:block bg-card overflow-hidden min-w-0",
+          isLayersOpen ? "w-full border-r border-border" : "w-0 border-r-0"
         )}>
           {isLayersOpen && (
             <div className="h-full flex flex-col">
@@ -377,8 +497,11 @@ export default function MapPage() {
           )}
         </div>
 
-        {/* Map Container - flex-1 min-h-0 for proper sizing */}
-        <div className="flex-1 min-h-0 relative bg-surface-1 overflow-hidden">
+        {/* Map Container - Full width, expands when panel is closed */}
+        <div 
+          ref={mapContainerRef}
+          className="min-h-0 relative bg-surface-1 overflow-hidden w-full h-full"
+        >
           <MapContainer
             center={getMapCenter()}
             zoom={8}
@@ -389,6 +512,7 @@ export default function MapPage() {
               position: "relative"
             }}
             scrollWheelZoom={true}
+            zoomControl={false}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -411,20 +535,27 @@ export default function MapPage() {
             ))}
           </MapContainer>
 
+          {/* Map auto-resize handler - robust resize detection using ResizeObserver */}
+          <MapAutoResize map={map} isLayersOpen={isLayersOpen} containerRef={mapContainerRef} />
+
           {/* Map controls */}
           <MapControls map={map} />
 
           {/* Overlay Layer - Outside map container to avoid clipping */}
-          <div className="absolute inset-0 z-[3000] pointer-events-none">
+          <div className="absolute inset-4 z-[3000] pointer-events-none">
             {/* Desktop Toggle Button - Show when panel is collapsed */}
             {!isLayersOpen && (
               <Button
                 size="icon"
                 variant="secondary"
                 className={cn(
-                  "hidden md:flex absolute top-3 left-4 z-[3500] h-9 w-9 bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto",
+                  "hidden md:flex absolute left-4 z-[3500] h-9 w-9 bg-card/90 backdrop-blur-sm shadow-lg pointer-events-auto",
                   "touch-target"
                 )}
+                style={{ 
+                  bottom: `calc(var(--bottom-nav-height, ${bottomNavHeight}px) + env(safe-area-inset-bottom, 0px) + 3.5rem)`, // Above time slider
+                  left: `calc(1rem + env(safe-area-inset-left, 0px))`
+                }}
                 onClick={() => setIsLayersOpen(true)}
                 aria-label="Open Map Layers"
               >
@@ -432,30 +563,32 @@ export default function MapPage() {
               </Button>
             )}
 
-            {/* Mobile Toggle Button - Always visible, positioned below header */}
-            <Button
-              size="icon"
-              variant="secondary"
-              className={cn(
-                "fixed left-4 z-[3500] h-11 w-11 min-h-[44px] min-w-[44px] bg-card/95 backdrop-blur-sm shadow-lg",
-                "md:hidden touch-target pointer-events-auto"
-              )}
-              style={{ 
-                top: `calc(56px + env(safe-area-inset-top, 0px) + 0.5rem)`, // 56px = header height, + 0.5rem spacing
-                left: `calc(1rem + env(safe-area-inset-left, 0px))`
-              }}
-              onClick={() => setIsLayersOpen(!isLayersOpen)}
-              aria-label={isLayersOpen ? "Close Map Layers" : "Open Map Layers"}
-            >
-              {isLayersOpen ? <X className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
-            </Button>
+            {/* Mobile Toggle Button - Positioned bottom-left to avoid zoom controls, hidden when layers open */}
+            {!isLayersOpen && (
+              <Button
+                size="icon"
+                variant="secondary"
+                className={cn(
+                  "absolute left-4 z-[3500] h-11 w-11 min-h-[44px] min-w-[44px] bg-card/95 backdrop-blur-sm shadow-lg",
+                  "md:hidden touch-target pointer-events-auto"
+                )}
+                style={{ 
+                  bottom: `calc(var(--bottom-nav-height, ${bottomNavHeight}px) + env(safe-area-inset-bottom, 0px) + 1.5rem)`, // Above time slider
+                  left: `calc(1rem + env(safe-area-inset-left, 0px))`
+                }}
+                onClick={() => setIsLayersOpen(!isLayersOpen)}
+                aria-label="Open Map Layers"
+              >
+                <Layers className="h-5 w-5" />
+              </Button>
+            )}
 
             {/* Time slider - Hide on mobile when layers open */}
             {(!isMobile || !isLayersOpen) && (
               <div 
                 className="absolute left-1/2 -translate-x-1/2 glass-panel rounded-xl p-3 md:p-4 w-[calc(100%-24px)] max-w-[500px] pointer-events-auto map-overlay-slider"
                 style={{
-                  bottom: `calc(var(--bottom-nav-height, ${bottomNavHeight}px) + env(safe-area-inset-bottom, 0px) + 0.75rem)`,
+                  bottom: `calc(var(--bottom-nav-height, ${bottomNavHeight}px) + env(safe-area-inset-bottom, 0px) - 3.5rem)`,
                 }}
               >
                 <div className="flex items-center gap-2 md:gap-4">
