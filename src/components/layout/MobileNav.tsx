@@ -1,11 +1,6 @@
+// src/components/layout/MobileNav.tsx
 import { Link, useLocation } from "react-router-dom";
-import {
-  Map,
-  AlertTriangle,
-  Flame,
-  Radio,
-  MoreHorizontal,
-} from "lucide-react";
+import { Map, AlertTriangle, Flame, Radio, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -53,17 +48,17 @@ export function MobileNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg safe-area-bottom md:hidden">
       <div className="flex items-center justify-around px-2 py-2">
         {mainNav.map((item) => {
-          const isActive = location.pathname === item.href || 
-            (item.href !== "/app/map" && location.pathname.startsWith(item.href));
+          const isActive =
+            location.pathname === item.href ||
+            (item.href !== "/app/map" &&
+              location.pathname.startsWith(item.href));
           return (
             <Link
               key={item.name}
               to={item.href}
               className={cn(
                 "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px]",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
               <div className="relative">
@@ -78,7 +73,7 @@ export function MobileNav() {
             </Link>
           );
         })}
-        
+
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <button
@@ -102,8 +97,10 @@ export function MobileNav() {
             </SheetHeader>
             <div className="grid grid-cols-3 gap-3 py-4">
               {moreNav.map((item) => {
-                const isActive = location.pathname === item.href || 
-                  (item.href !== "/app/map" && location.pathname.startsWith(item.href));
+                const isActive =
+                  location.pathname === item.href ||
+                  (item.href !== "/app/map" &&
+                    location.pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.name}

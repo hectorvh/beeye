@@ -1,14 +1,13 @@
+// src/pages/app/AlertsPage.tsx
 import { useState } from "react";
-import { 
-  AlertTriangle, 
-  Filter, 
-  Search, 
-  ChevronDown,
+import {
+  AlertTriangle,
+  Filter,
+  Search,
   MapPin,
   Clock,
   CheckCircle,
   XCircle,
-  ArrowUpRight,
   MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,14 +39,34 @@ export default function AlertsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredAlerts = mockAlerts.filter((alert) => {
-    if (selectedSeverity !== "all" && alert.severity !== selectedSeverity) return false;
-    if (selectedStatus !== "all" && alert.status !== selectedStatus) return false;
-    return true;
+    if (selectedSeverity !== "all" && alert.severity !== selectedSeverity)
+      return false;
+    if (selectedStatus !== "all" && alert.status !== selectedStatus)
+      return false;
+
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+
+    const haystack = [
+      alert.id,
+      alert.topDrivers?.join(" "),
+      alert.sources?.join(" "),
+      alert.recommendedAction,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return haystack.includes(q);
   });
 
-  const criticalCount = mockAlerts.filter(a => a.severity === "critical").length;
-  const newCount = mockAlerts.filter(a => a.status === "new").length;
-  const verifyingCount = mockAlerts.filter(a => a.status === "verifying").length;
+  const criticalCount = mockAlerts.filter(
+    (a) => a.severity === "critical"
+  ).length;
+  const newCount = mockAlerts.filter((a) => a.status === "new").length;
+  const verifyingCount = mockAlerts.filter(
+    (a) => a.status === "verifying"
+  ).length;
 
   const formatTimeAgo = (dateString: string) => {
     const diff = Date.now() - new Date(dateString).getTime();
@@ -64,7 +83,9 @@ export default function AlertsPage() {
       <div className="border-b border-border bg-card p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">Alerts</h1>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              Alerts
+            </h1>
             <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Monitor and respond to fire detection alerts
             </p>
@@ -75,7 +96,7 @@ export default function AlertsPage() {
           </Button>
         </div>
 
-        {/* Stats - responsive grid */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Critical Alerts"
@@ -103,7 +124,7 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      {/* Filters - scrollable on mobile */}
+      {/* Filters */}
       <div className="flex items-center gap-2 md:gap-4 border-b border-border bg-card/50 px-4 md:px-6 py-3 overflow-x-auto">
         <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -114,6 +135,7 @@ export default function AlertsPage() {
             className="pl-9 bg-surface-1"
           />
         </div>
+
         <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
           <SelectTrigger className="w-32 md:w-40 bg-surface-1 shrink-0">
             <SelectValue placeholder="Severity" />
@@ -126,6 +148,7 @@ export default function AlertsPage() {
             <SelectItem value="low">Low</SelectItem>
           </SelectContent>
         </Select>
+
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
           <SelectTrigger className="w-32 md:w-40 bg-surface-1 shrink-0">
             <SelectValue placeholder="Status" />
@@ -140,6 +163,7 @@ export default function AlertsPage() {
             <SelectItem value="dismissed">Dismissed</SelectItem>
           </SelectContent>
         </Select>
+
         <Button variant="outline" size="sm" className="hidden md:flex">
           <Filter className="h-4 w-4 mr-2" />
           More Filters
@@ -155,25 +179,29 @@ export default function AlertsPage() {
               className={cn(
                 "rounded-xl border bg-card p-3 md:p-4 transition-all hover:bg-card/80 cursor-pointer active:scale-[0.99]",
                 alert.severity === "critical" && "border-critical/30",
-                alert.severity === "high" && "border-warning/30",
+                alert.severity === "high" && "border-warning/30"
               )}
             >
               <div className="flex items-start gap-3 md:gap-4">
                 {/* Severity indicator */}
-                <div className={cn(
-                  "flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-lg shrink-0",
-                  alert.severity === "critical" && "bg-critical/20",
-                  alert.severity === "high" && "bg-warning/20",
-                  alert.severity === "medium" && "bg-warning/10",
-                  alert.severity === "low" && "bg-muted",
-                )}>
-                  <AlertTriangle className={cn(
-                    "h-5 w-5 md:h-6 md:w-6",
-                    alert.severity === "critical" && "text-critical",
-                    alert.severity === "high" && "text-warning",
-                    alert.severity === "medium" && "text-warning/70",
-                    alert.severity === "low" && "text-muted-foreground",
-                  )} />
+                <div
+                  className={cn(
+                    "flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-lg shrink-0",
+                    alert.severity === "critical" && "bg-critical/20",
+                    alert.severity === "high" && "bg-warning/20",
+                    alert.severity === "medium" && "bg-warning/10",
+                    alert.severity === "low" && "bg-muted"
+                  )}
+                >
+                  <AlertTriangle
+                    className={cn(
+                      "h-5 w-5 md:h-6 md:w-6",
+                      alert.severity === "critical" && "text-critical",
+                      alert.severity === "high" && "text-warning",
+                      alert.severity === "medium" && "text-warning/70",
+                      alert.severity === "low" && "text-muted-foreground"
+                    )}
+                  />
                 </div>
 
                 {/* Content */}
@@ -181,11 +209,15 @@ export default function AlertsPage() {
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <StatusBadge
                       variant={
-                        alert.severity === "critical" ? "critical" :
-                        alert.severity === "high" ? "warning" :
-                        "neutral"
+                        alert.severity === "critical"
+                          ? "critical"
+                          : alert.severity === "high"
+                          ? "warning"
+                          : "neutral"
                       }
-                      pulse={alert.status === "new" && alert.severity === "critical"}
+                      pulse={
+                        alert.status === "new" && alert.severity === "critical"
+                      }
                     >
                       {alert.severity.toUpperCase()}
                     </StatusBadge>
@@ -196,14 +228,20 @@ export default function AlertsPage() {
                       {alert.id.toUpperCase()}
                     </span>
                   </div>
-                  
-                  <p className="text-xs md:text-sm font-medium mb-2 line-clamp-2">{alert.topDrivers[0]}</p>
-                  
+
+                  <p className="text-xs md:text-sm font-medium mb-2 line-clamp-2">
+                    {alert.topDrivers[0]}
+                  </p>
+
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 text-[10px] md:text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      <span className="hidden sm:inline">{alert.location.coordinates[1].toFixed(4)}, </span>
-                      <span className="sm:hidden">{alert.location.coordinates[1].toFixed(2)}, </span>
+                      <span className="hidden sm:inline">
+                        {alert.location.coordinates[1].toFixed(4)},{" "}
+                      </span>
+                      <span className="sm:hidden">
+                        {alert.location.coordinates[1].toFixed(2)},{" "}
+                      </span>
                       {alert.location.coordinates[0].toFixed(2)}
                     </span>
                     <span className="flex items-center gap-1">
@@ -211,13 +249,19 @@ export default function AlertsPage() {
                       {formatTimeAgo(alert.createdAt)}
                     </span>
                     <span className="flex items-center gap-1">
-                      <strong className="text-foreground">{alert.confidence}%</strong>
+                      <strong className="text-foreground">
+                        {alert.confidence}%
+                      </strong>
                     </span>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mt-2 md:mt-3">
                     {alert.sources.slice(0, 2).map((source) => (
-                      <Badge key={source} variant="outline" className="text-[10px] capitalize">
+                      <Badge
+                        key={source}
+                        variant="outline"
+                        className="text-[10px] capitalize"
+                      >
                         {source.replace("_", " ")}
                       </Badge>
                     ))}
@@ -229,7 +273,7 @@ export default function AlertsPage() {
                   </div>
                 </div>
 
-                {/* Actions - simplified for mobile */}
+                {/* Actions */}
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
                   {alert.status === "new" && (
                     <Button size="sm" variant="outline" className="h-8 text-xs">

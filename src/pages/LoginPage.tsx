@@ -1,3 +1,4 @@
+// src/pages/LoginPage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Shield } from "lucide-react";
@@ -22,10 +23,10 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Simulate login - in production this would authenticate with Supabase
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     navigate("/app/map");
   };
 
@@ -46,14 +47,18 @@ export default function LoginPage() {
               <img src="/logo4.png" alt="BeEye Logo" className="h-11 w-11" />
             </div>
             <div>
-              <span className="text-2xl font-bold text-foreground tracking-tight">BeEye</span>
+              <span className="text-2xl font-bold text-foreground tracking-tight">
+                BeEye
+              </span>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
                 Wildfire Protection
               </p>
             </div>
           </div>
-          
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back</h1>
+
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Welcome back
+          </h1>
           <p className="text-muted-foreground">
             Sign in to access the operations center
           </p>
@@ -98,7 +103,9 @@ export default function LoginPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="incident_commander">Incident Commander</SelectItem>
+                <SelectItem value="incident_commander">
+                  Incident Commander
+                </SelectItem>
                 <SelectItem value="operator">Operator</SelectItem>
                 <SelectItem value="responder">Responder</SelectItem>
                 <SelectItem value="analyst">Analyst</SelectItem>
@@ -128,13 +135,14 @@ export default function LoginPage() {
         </Button>
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Protected by enterprise-grade security. Access is monitored and logged.
+          Protected by enterprise-grade security. Access is monitored and
+          logged.
         </p>
       </div>
 
       {/* Right side - Visual */}
       <div className="hidden flex-1 lg:block relative">
-        <div 
+        <div
           className="absolute inset-0"
           style={{
             background: `
@@ -145,14 +153,14 @@ export default function LoginPage() {
           }}
         >
           {/* Grid overlay */}
-          <div 
+          <div
             className="absolute inset-0 opacity-10"
             style={{
               backgroundImage: `
                 linear-gradient(hsl(var(--border)) 1px, transparent 1px),
                 linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
               `,
-              backgroundSize: '60px 60px',
+              backgroundSize: "60px 60px",
             }}
           />
 
@@ -163,19 +171,23 @@ export default function LoginPage() {
                 <div className="w-32 h-32 mx-auto rounded-full bg-warning/20 flex items-center justify-center">
                   <div className="w-24 h-24 rounded-full bg-warning/30 flex items-center justify-center pulse-warning">
                     <div className="w-16 h-16 rounded-full bg-warning/50 flex items-center justify-center">
-                      <img src="/logo4n.png" alt="BeEye Logo" className="w-12 h-12" />
+                      <img
+                        src="/logo4n.png"
+                        alt="BeEye Logo"
+                        className="w-12 h-12"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <h2 className="text-2xl font-bold mb-4">
                 Wildfire Detection & Response Platform
               </h2>
               <p className="text-muted-foreground mb-8">
-                AI-powered monitoring system integrating satellite imagery, weather data, 
-                drone reconnaissance, and predictive modeling for early wildfire detection 
-                and response coordination.
+                AI-powered monitoring system integrating satellite imagery,
+                weather data, drone reconnaissance, and predictive modeling for
+                early wildfire detection and response coordination.
               </p>
 
               <div className="grid grid-cols-3 gap-4 text-center">
@@ -185,7 +197,9 @@ export default function LoginPage() {
                 </div>
                 <div className="rounded-lg bg-surface-1/50 p-4">
                   <p className="text-2xl font-bold text-warning">&lt;5min</p>
-                  <p className="text-xs text-muted-foreground">Detection Time</p>
+                  <p className="text-xs text-muted-foreground">
+                    Detection Time
+                  </p>
                 </div>
                 <div className="rounded-lg bg-surface-1/50 p-4">
                   <p className="text-2xl font-bold text-success">95%</p>
