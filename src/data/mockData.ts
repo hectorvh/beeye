@@ -13,17 +13,17 @@ import type {
   ImpactSummary,
 } from "@/types";
 
-// Helper to generate random coordinates in California
-const randomCaCoords = () => ({
-  lat: 34.0 + Math.random() * 6,
-  lng: -122.0 + Math.random() * 4,
+// Helper to generate random coordinates in SW Turkey (Muğla/Antalya/İzmir region)
+const randomTurkeyCoords = () => ({
+  lat: 36.5 + Math.random() * 2.5, // 36.5 to 39.0 (SW Turkey)
+  lng: 27.0 + Math.random() * 5.5, // 27.0 to 32.5 (SW Turkey)
 });
 
-// Mock Alerts
+// Mock Alerts - Turkey locations
 export const mockAlerts: Alert[] = [
   {
     id: "alert-001",
-    location: { type: "Point", coordinates: [-118.432, 34.0689] },
+    location: { type: "Point", coordinates: [28.27, 36.85] }, // Marmaris, Muğla
     severity: "critical",
     confidence: 92,
     status: "new",
@@ -35,7 +35,7 @@ export const mockAlerts: Alert[] = [
   },
   {
     id: "alert-002",
-    location: { type: "Point", coordinates: [-119.7871, 36.7378] },
+    location: { type: "Point", coordinates: [31.44, 36.78] }, // Manavgat, Antalya
     severity: "high",
     confidence: 78,
     status: "acknowledged",
@@ -49,7 +49,7 @@ export const mockAlerts: Alert[] = [
   },
   {
     id: "alert-003",
-    location: { type: "Point", coordinates: [-121.4944, 38.5816] },
+    location: { type: "Point", coordinates: [29.12, 36.62] }, // Fethiye, Muğla
     severity: "medium",
     confidence: 65,
     status: "verifying",
@@ -62,7 +62,7 @@ export const mockAlerts: Alert[] = [
   },
   {
     id: "alert-004",
-    location: { type: "Point", coordinates: [-117.1611, 32.7157] },
+    location: { type: "Point", coordinates: [27.84, 37.84] }, // Aydın
     severity: "low",
     confidence: 45,
     status: "new",
@@ -74,7 +74,7 @@ export const mockAlerts: Alert[] = [
   },
   {
     id: "alert-005",
-    location: { type: "Point", coordinates: [-122.4194, 37.7749] },
+    location: { type: "Point", coordinates: [27.14, 38.42] }, // İzmir
     severity: "high",
     confidence: 85,
     status: "escalated",
@@ -87,23 +87,23 @@ export const mockAlerts: Alert[] = [
   },
 ];
 
-// Mock Incidents
+// Mock Incidents - Turkey locations
 export const mockIncidents: Incident[] = [
   {
     id: "incident-001",
-    name: "Sierra Foothills Fire",
+    name: "Fethiye Forest Fire",
     status: "confirmed",
     priority: "high",
     confidence: 95,
-    location: { type: "Point", coordinates: [-121.4944, 38.5816] },
+    location: { type: "Point", coordinates: [29.12, 36.62] }, // Fethiye, Muğla
     perimeterGeometry: {
       type: "Polygon",
       coordinates: [[
-        [-121.51, 38.59],
-        [-121.48, 38.59],
-        [-121.48, 38.57],
-        [-121.51, 38.57],
-        [-121.51, 38.59],
+        [29.10, 36.64],
+        [29.14, 36.64],
+        [29.14, 36.60],
+        [29.10, 36.60],
+        [29.10, 36.64],
       ]],
     },
     alertIds: ["alert-003"],
@@ -113,20 +113,20 @@ export const mockIncidents: Incident[] = [
   },
   {
     id: "incident-002",
-    name: "Bay Area Wildfire",
+    name: "İzmir Coastal Wildfire",
     status: "suspected",
     priority: "critical",
     confidence: 88,
-    location: { type: "Point", coordinates: [-122.4194, 37.7749] },
+    location: { type: "Point", coordinates: [27.14, 38.42] }, // İzmir
     alertIds: ["alert-005"],
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
   },
 ];
 
-// Mock Weather Stations
+// Mock Weather Stations - Turkey locations
 export const mockWeatherStations: WeatherStation[] = Array.from({ length: 10 }, (_, i) => {
-  const coords = randomCaCoords();
+  const coords = randomTurkeyCoords();
   return {
     id: `ws-${String(i + 1).padStart(3, "0")}`,
     name: `Weather Station ${String(i + 1).padStart(3, "0")}`,
@@ -138,32 +138,32 @@ export const mockWeatherStations: WeatherStation[] = Array.from({ length: 10 }, 
   };
 });
 
-// Mock Ground Stations
+// Mock Ground Stations - Turkey locations
 export const mockGroundStations: GroundStationGateway[] = [
   {
     id: "gs-001",
-    name: "Central Valley Gateway",
-    location: { type: "Point", coordinates: [-120.5, 36.5] },
+    name: "Antalya Gateway",
+    location: { type: "Point", coordinates: [30.71, 36.90] }, // Antalya
     status: "online",
     lastSync: new Date(Date.now() - 1000 * 30).toISOString(),
     bufferQueueSize: 12,
   },
   {
     id: "gs-002",
-    name: "Coastal Range Gateway",
-    location: { type: "Point", coordinates: [-122.0, 38.0] },
+    name: "Muğla Gateway",
+    location: { type: "Point", coordinates: [28.37, 37.22] }, // Muğla
     status: "online",
     lastSync: new Date(Date.now() - 1000 * 45).toISOString(),
     bufferQueueSize: 8,
   },
 ];
 
-// Mock Balloon Assets
+// Mock Balloon Assets - Turkey locations
 export const mockBalloons: BalloonAsset[] = [
   {
     id: "balloon-001",
     name: "Sentinel Alpha",
-    location: { type: "Point", coordinates: [-119.0, 35.5] },
+    location: { type: "Point", coordinates: [28.5, 37.0] }, // Muğla region
     status: "online",
     payloadType: "multispectral",
     coverageRadius: 50,
@@ -171,7 +171,7 @@ export const mockBalloons: BalloonAsset[] = [
   },
 ];
 
-// Mock Balloon Detection Events
+// Mock Balloon Detection Events - Turkey locations
 export const mockBalloonEvents: BalloonDetectionEvent[] = [
   {
     id: "bde-001",
@@ -179,7 +179,7 @@ export const mockBalloonEvents: BalloonDetectionEvent[] = [
     timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
     smokeProbability: 0.89,
     thermalAnomalyScore: 0.76,
-    location: { type: "Point", coordinates: [-118.9, 35.4] },
+    location: { type: "Point", coordinates: [28.48, 36.98] }, // Near Marmaris
   },
 ];
 
@@ -201,7 +201,7 @@ export const mockDrones: DroneAsset[] = [
   },
 ];
 
-// Mock UAV Missions
+// Mock UAV Missions - Turkey locations
 export const mockMissions: UavMission[] = [
   {
     id: "mission-001",
@@ -211,12 +211,12 @@ export const mockMissions: UavMission[] = [
     aoi: {
       type: "Polygon",
       coordinates: [[
-        [-121.52, 38.60],
-        [-121.47, 38.60],
-        [-121.47, 38.56],
-        [-121.52, 38.56],
-        [-121.52, 38.60],
-      ]],
+        [29.10, 36.64],
+        [29.14, 36.64],
+        [29.14, 36.60],
+        [29.10, 36.60],
+        [29.10, 36.64],
+      ]], // Fethiye area
     },
     assignedTo: "user-003",
     startTime: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
@@ -231,12 +231,12 @@ export const mockMissions: UavMission[] = [
     aoi: {
       type: "Polygon",
       coordinates: [[
-        [-122.45, 37.80],
-        [-122.38, 37.80],
-        [-122.38, 37.74],
-        [-122.45, 37.74],
-        [-122.45, 37.80],
-      ]],
+        [27.10, 38.45],
+        [27.18, 38.45],
+        [27.18, 38.39],
+        [27.10, 38.39],
+        [27.10, 38.45],
+      ]], // İzmir area
     },
     assignedTo: "user-003",
     startTime: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
@@ -257,7 +257,7 @@ export const mockPredictionRuns: PredictionRun[] = [
   },
 ];
 
-// Mock Spread Envelopes
+// Mock Spread Envelopes - Turkey locations
 export const mockSpreadEnvelopes: SpreadEnvelope[] = [
   {
     id: "spread-001-1h",
@@ -266,12 +266,12 @@ export const mockSpreadEnvelopes: SpreadEnvelope[] = [
     geometry: {
       type: "Polygon",
       coordinates: [[
-        [-121.505, 38.585],
-        [-121.485, 38.585],
-        [-121.485, 38.575],
-        [-121.505, 38.575],
-        [-121.505, 38.585],
-      ]],
+        [29.11, 36.63],
+        [29.13, 36.63],
+        [29.13, 36.61],
+        [29.11, 36.61],
+        [29.11, 36.63],
+      ]], // Fethiye area
     },
     probabilityBand: "likely",
   },
@@ -282,18 +282,18 @@ export const mockSpreadEnvelopes: SpreadEnvelope[] = [
     geometry: {
       type: "Polygon",
       coordinates: [[
-        [-121.52, 38.60],
-        [-121.47, 38.60],
-        [-121.47, 38.56],
-        [-121.52, 38.56],
-        [-121.52, 38.60],
-      ]],
+        [29.10, 36.64],
+        [29.14, 36.64],
+        [29.14, 36.60],
+        [29.10, 36.60],
+        [29.10, 36.64],
+      ]], // Fethiye expanded area
     },
     probabilityBand: "possible",
   },
 ];
 
-// Mock Impact Summary
+// Mock Impact Summary - Turkey context
 export const mockImpactSummary: ImpactSummary = {
   id: "impact-001",
   runId: "pred-001",
@@ -303,7 +303,7 @@ export const mockImpactSummary: ImpactSummary = {
   narrativeDrivers: [
     "Wind shift expected in 2 hours could accelerate eastward spread",
     "3 residential communities within 6-hour forecast envelope",
-    "Highway 50 closure likely if spread continues",
+    "D400 highway closure likely if spread continues",
     "Water source availability: 2 accessible hydrants within 5km",
   ],
 };

@@ -377,7 +377,7 @@ export default function MapPage() {
       const firstAlert = mockAlerts[0];
       return [firstAlert.location.coordinates[1], firstAlert.location.coordinates[0]];
     }
-    return [36.7783, -119.4179]; // Default to California center
+    return [37.0, 28.5]; // Default to SW Turkey (Muğla/Antalya region)
   };
 
   // Calculate bottom nav height (MobileNav is ~72px with padding + safe area)
