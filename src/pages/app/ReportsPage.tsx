@@ -20,7 +20,7 @@ export default function ReportsPage() {
   const mockReports = [
     {
       id: "report-001",
-      name: "Sierra Foothills Fire - Incident Report",
+      name: "Fethiye Forest Fire - Incident Report",
       type: "incident",
       createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
       createdBy: "Commander Johnson",
@@ -36,7 +36,7 @@ export default function ReportsPage() {
     },
     {
       id: "report-003",
-      name: "Bay Area Wildfire - Evidence Pack",
+      name: "İzmir Coastal Wildfire - Evidence Pack",
       type: "evidence",
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
       createdBy: "Operator Smith",
@@ -65,22 +65,22 @@ export default function ReportsPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="border-b border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">Reports</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Generate and manage incident reports and evidence packs
             </p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Report
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Stats - responsive grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Reports Generated"
             value={mockReports.length + 12}
@@ -106,15 +106,15 @@ export default function ReportsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4 border-b border-border bg-card/50 px-6 py-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-2 md:gap-4 border-b border-border bg-card/50 px-4 md:px-6 py-3 overflow-x-auto">
+        <div className="relative flex-1 max-w-sm min-w-[180px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search reports..."
             className="pl-9 bg-surface-1"
           />
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="shrink-0">
           <Calendar className="h-4 w-4 mr-2" />
           Date Range
         </Button>
@@ -125,11 +125,11 @@ export default function ReportsPage() {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-4">
+        <div className="p-4 md:p-6 space-y-3 md:space-y-4">
           {mockReports.map((report) => (
             <div
               key={report.id}
-              className="rounded-xl border border-border bg-card p-5"
+              className="rounded-xl border border-border bg-card p-4 md:p-5 transition-all hover:bg-card/80 active:scale-[0.99]"
             >
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-2">
@@ -170,24 +170,24 @@ export default function ReportsPage() {
           ))}
 
           {/* Report Templates */}
-          <div className="mt-8">
+          <div className="mt-6 md:mt-8">
             <h2 className="text-lg font-semibold mb-4">Report Templates</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl border border-dashed border-border p-5 hover:border-primary/50 cursor-pointer transition-colors">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+              <div className="rounded-xl border border-dashed border-border p-4 md:p-5 hover:border-primary/50 cursor-pointer transition-colors">
                 <FileText className="h-8 w-8 text-muted-foreground mb-3" />
                 <h3 className="font-semibold mb-1">Incident Report</h3>
                 <p className="text-sm text-muted-foreground">
                   Comprehensive incident documentation with timeline and actions taken.
                 </p>
               </div>
-              <div className="rounded-xl border border-dashed border-border p-5 hover:border-primary/50 cursor-pointer transition-colors">
+              <div className="rounded-xl border border-dashed border-border p-4 md:p-5 hover:border-primary/50 cursor-pointer transition-colors">
                 <BarChart3 className="h-8 w-8 text-muted-foreground mb-3" />
                 <h3 className="font-semibold mb-1">Operations Summary</h3>
                 <p className="text-sm text-muted-foreground">
                   Weekly or daily summary of all operations and alerts.
                 </p>
               </div>
-              <div className="rounded-xl border border-dashed border-border p-5 hover:border-primary/50 cursor-pointer transition-colors">
+              <div className="rounded-xl border border-dashed border-border p-4 md:p-5 hover:border-primary/50 cursor-pointer transition-colors">
                 <Download className="h-8 w-8 text-muted-foreground mb-3" />
                 <h3 className="font-semibold mb-1">Evidence Pack</h3>
                 <p className="text-sm text-muted-foreground">

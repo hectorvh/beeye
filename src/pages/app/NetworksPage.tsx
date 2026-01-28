@@ -29,22 +29,22 @@ export default function NetworksPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="border-b border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Network Infrastructure</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">Network Infrastructure</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Ground stations, gateways, and balloon assets
             </p>
           </div>
-          <Button variant="outline">
+          <Button variant="outline" className="w-full sm:w-auto">
             <RefreshCw className="h-4 w-4 mr-2" />
             Sync All
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Stats - responsive grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Ground Stations"
             value={mockGroundStations.length}
@@ -71,18 +71,18 @@ export default function NetworksPage() {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6">
           {/* Ground Stations */}
           <div>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Server className="h-5 w-5 text-muted-foreground" />
               Ground Station Gateways
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {mockGroundStations.map((gateway) => (
                 <div
                   key={gateway.id}
-                  className="rounded-xl border border-border bg-card p-5"
+                  className="rounded-xl border border-border bg-card p-4 md:p-5"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -148,11 +148,11 @@ export default function NetworksPage() {
               <Signal className="h-5 w-5 text-muted-foreground" />
               Balloon Detection Assets
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {mockBalloons.map((balloon) => (
                 <div
                   key={balloon.id}
-                  className="rounded-xl border border-border bg-card p-5"
+                  className="rounded-xl border border-border bg-card p-4 md:p-5"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">

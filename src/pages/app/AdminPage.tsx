@@ -34,18 +34,18 @@ export default function AdminPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="border-b border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Administration</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">Administration</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               System settings, user management, and audit logs
             </p>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Stats - responsive grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Active Users"
             value={mockUsers.filter(u => u.status === "active").length}
@@ -80,7 +80,7 @@ export default function AdminPage() {
         </TabsList>
 
         <ScrollArea className="flex-1">
-          <TabsContent value="users" className="p-6 m-0">
+          <TabsContent value="users" className="p-4 md:p-6 m-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">User Management</h2>
               <Button size="sm">
@@ -118,7 +118,7 @@ export default function AdminPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="api" className="p-6 m-0">
+          <TabsContent value="api" className="p-4 md:p-6 m-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">API Keys</h2>
               <Button size="sm">
@@ -135,7 +135,7 @@ export default function AdminPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="audit" className="p-6 m-0">
+          <TabsContent value="audit" className="p-4 md:p-6 m-0">
             <h2 className="text-lg font-semibold mb-4">Audit Log</h2>
             <div className="rounded-xl border border-border bg-card">
               <div className="grid grid-cols-4 gap-4 p-4 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -159,10 +159,10 @@ export default function AdminPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="settings" className="p-6 m-0">
+          <TabsContent value="settings" className="p-4 md:p-6 m-0">
             <h2 className="text-lg font-semibold mb-4">System Settings</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl border border-border bg-card p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="rounded-xl border border-border bg-card p-4 md:p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Bell className="h-5 w-5 text-muted-foreground" />
                   <h3 className="font-semibold">Notifications</h3>
@@ -172,7 +172,7 @@ export default function AdminPage() {
                 </p>
                 <Button size="sm" variant="outline">Configure</Button>
               </div>
-              <div className="rounded-xl border border-border bg-card p-5">
+              <div className="rounded-xl border border-border bg-card p-4 md:p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Globe className="h-5 w-5 text-muted-foreground" />
                   <h3 className="font-semibold">Integrations</h3>
@@ -182,7 +182,7 @@ export default function AdminPage() {
                 </p>
                 <Button size="sm" variant="outline">Configure</Button>
               </div>
-              <div className="rounded-xl border border-border bg-card p-5">
+              <div className="rounded-xl border border-border bg-card p-4 md:p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Database className="h-5 w-5 text-muted-foreground" />
                   <h3 className="font-semibold">Data Retention</h3>
@@ -192,7 +192,7 @@ export default function AdminPage() {
                 </p>
                 <Button size="sm" variant="outline">Configure</Button>
               </div>
-              <div className="rounded-xl border border-border bg-card p-5">
+              <div className="rounded-xl border border-border bg-card p-4 md:p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Server className="h-5 w-5 text-muted-foreground" />
                   <h3 className="font-semibold">System Health</h3>

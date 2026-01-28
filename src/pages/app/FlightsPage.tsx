@@ -72,22 +72,22 @@ export default function FlightsPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="border-b border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">UAV Flights</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">UAV Flights</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Manage drone missions and process outputs
             </p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Create Mission
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Stats - responsive grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Active Missions"
             value={activeMissions}
@@ -112,9 +112,9 @@ export default function FlightsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4 border-b border-border bg-card/50 px-6 py-3">
-        <div className="relative flex-1 max-w-sm">
+      {/* Filters - scrollable on mobile */}
+      <div className="flex items-center gap-2 md:gap-4 border-b border-border bg-card/50 px-4 md:px-6 py-3 overflow-x-auto">
+        <div className="relative flex-1 max-w-sm min-w-[180px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search missions..."
@@ -122,7 +122,7 @@ export default function FlightsPage() {
           />
         </div>
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-40 bg-surface-1">
+          <SelectTrigger className="w-40 bg-surface-1 shrink-0">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -133,7 +133,7 @@ export default function FlightsPage() {
             <SelectItem value="aborted">Aborted</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="shrink-0">
           <Filter className="h-4 w-4 mr-2" />
           More Filters
         </Button>
@@ -141,7 +141,7 @@ export default function FlightsPage() {
 
       {/* Mission List */}
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-4">
+        <div className="p-4 md:p-6 space-y-3 md:space-y-4">
           {filteredMissions.map((mission) => {
             const drone = getDrone(mission.droneId);
             const isActive = mission.status === "in_progress";
@@ -151,7 +151,7 @@ export default function FlightsPage() {
               <div
                 key={mission.id}
                 className={cn(
-                  "rounded-xl border bg-card p-5 transition-all",
+                  "rounded-xl border bg-card p-4 md:p-5 transition-all hover:bg-card/80 active:scale-[0.99]",
                   isActive && "border-warning/30",
                 )}
               >

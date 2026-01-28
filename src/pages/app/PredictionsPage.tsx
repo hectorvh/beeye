@@ -44,22 +44,22 @@ export default function PredictionsPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="border-b border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">AI Predictions</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">AI Predictions</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Risk nowcasts, spread forecasts, and impact assessments
             </p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Play className="h-4 w-4 mr-2" />
             New Prediction Run
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Stats - responsive grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Predictions Today"
             value={mockPredictionRuns.length + 3}
@@ -84,9 +84,9 @@ export default function PredictionsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4 border-b border-border bg-card/50 px-6 py-3">
-        <div className="relative flex-1 max-w-sm">
+      {/* Filters - scrollable on mobile */}
+      <div className="flex items-center gap-2 md:gap-4 border-b border-border bg-card/50 px-4 md:px-6 py-3 overflow-x-auto">
+        <div className="relative flex-1 max-w-sm min-w-[180px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search predictions..."
@@ -100,11 +100,11 @@ export default function PredictionsPage() {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6">
           {/* Available Models */}
           <div>
             <h2 className="text-lg font-semibold mb-4">Prediction Models</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               <div className="rounded-xl border border-border bg-card p-5 hover:bg-card/80 cursor-pointer transition-colors">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/20">
@@ -182,7 +182,7 @@ export default function PredictionsPage() {
                 return (
                   <div
                     key={run.id}
-                    className="rounded-xl border border-border bg-card p-5"
+                    className="rounded-xl border border-border bg-card p-4 md:p-5"
                   >
                     <div className="flex items-start gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-2">
