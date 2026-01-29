@@ -1,3 +1,4 @@
+// src/components/layout/AppSidebar.tsx
 import { Link, useLocation } from "react-router-dom";
 import {
   Map,
@@ -24,9 +25,7 @@ const navigation = [
   { name: "Reports", href: "/app/reports", icon: FileText },
 ];
 
-const adminNav = [
-  { name: "Admin", href: "/app/admin", icon: Settings },
-];
+const adminNav = [{ name: "Admin", href: "/app/admin", icon: Settings }];
 
 export function AppSidebar() {
   const location = useLocation();
@@ -39,7 +38,9 @@ export function AppSidebar() {
           <img src="/logo4.png" alt="BeEye Logo" className="h-9 w-9" />
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-bold text-foreground tracking-tight">BeEye</span>
+          <span className="text-lg font-bold text-foreground tracking-tight">
+            BeEye
+          </span>
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
             Wildfire Protection
           </span>
@@ -53,7 +54,9 @@ export function AppSidebar() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success"></span>
           </span>
-          <span className="text-xs font-medium text-success">System Operational</span>
+          <span className="text-xs font-medium text-success">
+            System Operational
+          </span>
         </div>
         <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
           <span>Active Alerts: 3</span>
@@ -67,8 +70,10 @@ export function AppSidebar() {
           Operations
         </div>
         {navigation.map((item) => {
-          const isActive = location.pathname === item.href || 
-            (item.href !== "/app/map" && location.pathname.startsWith(item.href));
+          const isActive =
+            location.pathname === item.href ||
+            (item.href !== "/app/map" &&
+              location.pathname.startsWith(item.href));
           return (
             <Link
               key={item.name}
@@ -80,7 +85,9 @@ export function AppSidebar() {
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
               )}
             >
-              <item.icon className={cn("h-4 w-4", isActive && "text-primary")} />
+              <item.icon
+                className={cn("h-4 w-4", isActive && "text-primary")}
+              />
               {item.name}
               {item.name === "Alerts" && (
                 <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-critical text-[10px] font-bold text-critical-foreground">
@@ -109,7 +116,9 @@ export function AppSidebar() {
                   : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
               )}
             >
-              <item.icon className={cn("h-4 w-4", isActive && "text-primary")} />
+              <item.icon
+                className={cn("h-4 w-4", isActive && "text-primary")}
+              />
               {item.name}
             </Link>
           );
@@ -123,8 +132,12 @@ export function AppSidebar() {
             IC
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-foreground">Incident Commander</span>
-            <span className="text-xs text-muted-foreground">Operator Access</span>
+            <span className="text-sm font-medium text-foreground">
+              Incident Commander
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Operator Access
+            </span>
           </div>
         </div>
       </div>

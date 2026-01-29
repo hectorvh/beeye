@@ -1,3 +1,4 @@
+// src/components/layout/MobileHeader.tsx
 import { Bell, Menu, Wifi, WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,7 +117,7 @@ export function MobileHeader() {
                 </div>
               </div>
             </SheetHeader>
-            
+
             {/* Status */}
             <div className="mx-4 mt-4 rounded-lg bg-surface-2 p-3">
               <div className="flex items-center gap-2">
@@ -124,15 +125,19 @@ export function MobileHeader() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success"></span>
                 </span>
-                <span className="text-xs font-medium text-success">System Operational</span>
+                <span className="text-xs font-medium text-success">
+                  System Operational
+                </span>
               </div>
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-1">
               {navigation.map((item) => {
-                const isActive = location.pathname === item.href || 
-                  (item.href !== "/app/map" && location.pathname.startsWith(item.href));
+                const isActive =
+                  location.pathname === item.href ||
+                  (item.href !== "/app/map" &&
+                    location.pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.name}
@@ -164,8 +169,12 @@ export function MobileHeader() {
                   IC
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">Incident Commander</span>
-                  <span className="text-xs text-muted-foreground">Operator Access</span>
+                  <span className="text-sm font-medium">
+                    Incident Commander
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Operator Access
+                  </span>
                 </div>
               </div>
               <Button variant="outline" className="w-full" size="sm">

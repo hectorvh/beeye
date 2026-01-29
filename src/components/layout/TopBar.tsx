@@ -1,3 +1,4 @@
+// src/components/layout/TopBar.tsx
 import { Bell, Search, Clock, Wifi, WifiOff, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,9 +39,11 @@ export function TopBar() {
   };
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-card px-6">
+    <header className="flex h-16 items-center border-b border-border bg-card px-6">
+      {" "}
       {/* Search */}
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        {" "}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -49,7 +52,6 @@ export function TopBar() {
           />
         </div>
       </div>
-
       {/* Right side */}
       <div className="flex items-center gap-4">
         {/* Connection status */}
@@ -57,7 +59,9 @@ export function TopBar() {
           {isOnline ? (
             <>
               <Wifi className="h-4 w-4 text-success" />
-              <span className="text-xs font-medium text-success">Connected</span>
+              <span className="text-xs font-medium text-success">
+                Connected
+              </span>
             </>
           ) : (
             <>
@@ -74,14 +78,21 @@ export function TopBar() {
             <span className="font-mono text-sm font-semibold text-foreground">
               {formatTime(currentTime)}
             </span>
-            <span className="text-[10px] text-muted-foreground">{formatDate(currentTime)} UTC</span>
+            <span className="text-[10px] text-muted-foreground">
+              {formatDate(currentTime)} UTC
+            </span>
           </div>
         </div>
 
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Open notifications"
+              className="relative"
+            >
               <Bell className="h-5 w-5" />
               <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-critical text-[10px] font-bold text-critical-foreground">
                 5
@@ -115,7 +126,7 @@ export function TopBar() {
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="Open user menu">
               <User className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
