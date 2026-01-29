@@ -362,8 +362,8 @@ export default function MapPage() {
     typeof window !== "undefined" ? window.innerWidth >= 768 : false
   );
 
-  // tile layer selection
-  const [tileLayerId, setTileLayerId] = useState("osm");
+  // tile layer selection (default: satellite)
+  const [tileLayerId, setTileLayerId] = useState("satellite");
 
   // Tile layer definitions
   const tileLayerOptions = useMemo(
