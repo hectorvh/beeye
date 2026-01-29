@@ -385,9 +385,8 @@ export default function MapPage() {
       {
         id: "topo",
         name: "Topographic",
-        url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-        attribution:
-          '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> contributors',
+        url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+        attribution: '&copy; <a href="https://www.usgs.gov/">USGS</a>',
       },
       {
         id: "dark",
