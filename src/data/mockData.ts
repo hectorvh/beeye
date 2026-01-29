@@ -15,8 +15,8 @@ import type {
 
 // Helper to generate random coordinates in SW Turkey (Muğla/Antalya/İzmir region)
 const randomTurkeyCoords = () => ({
-  lat: 36.5 + Math.random() * 2.5, // 36.5 to 39.0 (SW Turkey)
-  lng: 27.0 + Math.random() * 5.5, // 27.0 to 32.5 (SW Turkey)
+  lat: 36.5 + Math.random() * 2.5, // 36.5 to 39.0
+  lng: 27.0 + Math.random() * 5.5, // 27.0 to 32.5
 });
 
 // Mock Alerts - Turkey locations
@@ -28,7 +28,11 @@ export const mockAlerts: Alert[] = [
     confidence: 92,
     status: "new",
     sources: ["satellite", "balloon"],
-    topDrivers: ["High smoke density", "Thermal anomaly +45°C", "Low humidity 12%"],
+    topDrivers: [
+      "High smoke density",
+      "Thermal anomaly +45°C",
+      "Low humidity 12%",
+    ],
     recommendedAction: "Immediate aerial verification recommended",
     createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
@@ -40,7 +44,11 @@ export const mockAlerts: Alert[] = [
     confidence: 78,
     status: "acknowledged",
     sources: ["weather_station", "ai_prediction"],
-    topDrivers: ["Rapid temperature rise", "Wind shift detected", "FWI above threshold"],
+    topDrivers: [
+      "Rapid temperature rise",
+      "Wind shift detected",
+      "FWI above threshold",
+    ],
     recommendedAction: "Ground verification within 30 minutes",
     createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
@@ -79,7 +87,11 @@ export const mockAlerts: Alert[] = [
     confidence: 85,
     status: "escalated",
     sources: ["satellite", "uav"],
-    topDrivers: ["Active fire growth", "Urban-wildland interface", "High population density"],
+    topDrivers: [
+      "Active fire growth",
+      "Urban-wildland interface",
+      "High population density",
+    ],
     recommendedAction: "Immediate response required",
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
@@ -95,16 +107,18 @@ export const mockIncidents: Incident[] = [
     status: "confirmed",
     priority: "high",
     confidence: 95,
-    location: { type: "Point", coordinates: [29.12, 36.62] }, // Fethiye, Muğla
+    location: { type: "Point", coordinates: [29.12, 36.62] },
     perimeterGeometry: {
       type: "Polygon",
-      coordinates: [[
-        [29.10, 36.64],
-        [29.14, 36.64],
-        [29.14, 36.60],
-        [29.10, 36.60],
-        [29.10, 36.64],
-      ]],
+      coordinates: [
+        [
+          [29.1, 36.64],
+          [29.14, 36.64],
+          [29.14, 36.6],
+          [29.1, 36.6],
+          [29.1, 36.64],
+        ],
+      ],
     },
     alertIds: ["alert-003"],
     commanderId: "user-002",
@@ -117,7 +131,7 @@ export const mockIncidents: Incident[] = [
     status: "suspected",
     priority: "critical",
     confidence: 88,
-    location: { type: "Point", coordinates: [27.14, 38.42] }, // İzmir
+    location: { type: "Point", coordinates: [27.14, 38.42] },
     alertIds: ["alert-005"],
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
@@ -125,25 +139,33 @@ export const mockIncidents: Incident[] = [
 ];
 
 // Mock Weather Stations - Turkey locations
-export const mockWeatherStations: WeatherStation[] = Array.from({ length: 10 }, (_, i) => {
-  const coords = randomTurkeyCoords();
-  return {
-    id: `ws-${String(i + 1).padStart(3, "0")}`,
-    name: `Weather Station ${String(i + 1).padStart(3, "0")}`,
-    location: { type: "Point" as const, coordinates: [coords.lng, coords.lat] },
-    status: i === 3 ? "offline" : i === 7 ? "degraded" : "online",
-    lastSeen: new Date(Date.now() - Math.random() * 1000 * 60 * 30).toISOString(),
-    batteryLevel: Math.floor(60 + Math.random() * 40),
-    metadata: { elevation: Math.floor(200 + Math.random() * 1500) },
-  };
-});
+export const mockWeatherStations: WeatherStation[] = Array.from(
+  { length: 10 },
+  (_, i) => {
+    const coords = randomTurkeyCoords();
+    return {
+      id: `ws-${String(i + 1).padStart(3, "0")}`,
+      name: `Weather Station ${String(i + 1).padStart(3, "0")}`,
+      location: {
+        type: "Point" as const,
+        coordinates: [coords.lng, coords.lat],
+      },
+      status: i === 3 ? "offline" : i === 7 ? "degraded" : "online",
+      lastSeen: new Date(
+        Date.now() - Math.random() * 1000 * 60 * 30
+      ).toISOString(),
+      batteryLevel: Math.floor(60 + Math.random() * 40),
+      metadata: { elevation: Math.floor(200 + Math.random() * 1500) },
+    };
+  }
+);
 
 // Mock Ground Stations - Turkey locations
 export const mockGroundStations: GroundStationGateway[] = [
   {
     id: "gs-001",
     name: "Antalya Gateway",
-    location: { type: "Point", coordinates: [30.71, 36.90] }, // Antalya
+    location: { type: "Point", coordinates: [30.71, 36.9] },
     status: "online",
     lastSync: new Date(Date.now() - 1000 * 30).toISOString(),
     bufferQueueSize: 12,
@@ -151,7 +173,7 @@ export const mockGroundStations: GroundStationGateway[] = [
   {
     id: "gs-002",
     name: "Muğla Gateway",
-    location: { type: "Point", coordinates: [28.37, 37.22] }, // Muğla
+    location: { type: "Point", coordinates: [28.37, 37.22] },
     status: "online",
     lastSync: new Date(Date.now() - 1000 * 45).toISOString(),
     bufferQueueSize: 8,
@@ -163,7 +185,7 @@ export const mockBalloons: BalloonAsset[] = [
   {
     id: "balloon-001",
     name: "Sentinel Alpha",
-    location: { type: "Point", coordinates: [28.5, 37.0] }, // Muğla region
+    location: { type: "Point", coordinates: [28.5, 37.0] },
     status: "online",
     payloadType: "multispectral",
     coverageRadius: 50,
@@ -179,7 +201,7 @@ export const mockBalloonEvents: BalloonDetectionEvent[] = [
     timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
     smokeProbability: 0.89,
     thermalAnomalyScore: 0.76,
-    location: { type: "Point", coordinates: [28.48, 36.98] }, // Near Marmaris
+    location: { type: "Point", coordinates: [28.48, 36.98] },
   },
 ];
 
@@ -210,13 +232,15 @@ export const mockMissions: UavMission[] = [
     type: "thermal",
     aoi: {
       type: "Polygon",
-      coordinates: [[
-        [29.10, 36.64],
-        [29.14, 36.64],
-        [29.14, 36.60],
-        [29.10, 36.60],
-        [29.10, 36.64],
-      ]], // Fethiye area
+      coordinates: [
+        [
+          [29.1, 36.64],
+          [29.14, 36.64],
+          [29.14, 36.6],
+          [29.1, 36.6],
+          [29.1, 36.64],
+        ],
+      ],
     },
     assignedTo: "user-003",
     startTime: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
@@ -230,13 +254,15 @@ export const mockMissions: UavMission[] = [
     type: "mapping",
     aoi: {
       type: "Polygon",
-      coordinates: [[
-        [27.10, 38.45],
-        [27.18, 38.45],
-        [27.18, 38.39],
-        [27.10, 38.39],
-        [27.10, 38.45],
-      ]], // İzmir area
+      coordinates: [
+        [
+          [27.1, 38.45],
+          [27.18, 38.45],
+          [27.18, 38.39],
+          [27.1, 38.39],
+          [27.1, 38.45],
+        ],
+      ],
     },
     assignedTo: "user-003",
     startTime: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
@@ -265,13 +291,15 @@ export const mockSpreadEnvelopes: SpreadEnvelope[] = [
     tPlusHours: 1,
     geometry: {
       type: "Polygon",
-      coordinates: [[
-        [29.11, 36.63],
-        [29.13, 36.63],
-        [29.13, 36.61],
-        [29.11, 36.61],
-        [29.11, 36.63],
-      ]], // Fethiye area
+      coordinates: [
+        [
+          [29.11, 36.63],
+          [29.13, 36.63],
+          [29.13, 36.61],
+          [29.11, 36.61],
+          [29.11, 36.63],
+        ],
+      ],
     },
     probabilityBand: "likely",
   },
@@ -281,13 +309,15 @@ export const mockSpreadEnvelopes: SpreadEnvelope[] = [
     tPlusHours: 3,
     geometry: {
       type: "Polygon",
-      coordinates: [[
-        [29.10, 36.64],
-        [29.14, 36.64],
-        [29.14, 36.60],
-        [29.10, 36.60],
-        [29.10, 36.64],
-      ]], // Fethiye expanded area
+      coordinates: [
+        [
+          [29.1, 36.64],
+          [29.14, 36.64],
+          [29.14, 36.6],
+          [29.1, 36.6],
+          [29.1, 36.64],
+        ],
+      ],
     },
     probabilityBand: "possible",
   },
@@ -309,11 +339,16 @@ export const mockImpactSummary: ImpactSummary = {
 };
 
 // Generate mock weather observations
-export const generateObservations = (stationId: string, hours: number = 24): WeatherObservation[] => {
+export const generateObservations = (
+  stationId: string,
+  hours: number = 24
+): WeatherObservation[] => {
   return Array.from({ length: hours }, (_, i) => ({
     id: `obs-${stationId}-${i}`,
     stationId,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * (hours - i)).toISOString(),
+    timestamp: new Date(
+      Date.now() - 1000 * 60 * 60 * (hours - i)
+    ).toISOString(),
     windSpeed: 5 + Math.random() * 25,
     windDirection: Math.floor(Math.random() * 360),
     relativeHumidity: 20 + Math.random() * 60,

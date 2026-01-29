@@ -39,9 +39,11 @@ export function TopBar() {
   };
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-card px-6">
+    <header className="flex h-16 items-center border-b border-border bg-card px-6">
+      {" "}
       {/* Search */}
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        {" "}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -50,7 +52,6 @@ export function TopBar() {
           />
         </div>
       </div>
-
       {/* Right side */}
       <div className="flex items-center gap-4">
         {/* Connection status */}

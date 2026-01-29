@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-@import 'leaflet/dist/leaflet.css';
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "leaflet/dist/leaflet.css";
 
 @tailwind base;
 @tailwind components;
@@ -24,7 +24,7 @@
   .map-overlay-slider {
     bottom: 1rem !important;
   }
-  
+
   .map-overlay-legend {
     bottom: 1rem !important;
   }
@@ -102,13 +102,13 @@
     /* Custom BeEye tokens */
     --warning: 38 92% 50%;
     --warning-foreground: 222 47% 6%;
-    
+
     --success: 142 76% 36%;
     --success-foreground: 210 40% 98%;
-    
+
     --critical: 0 84% 60%;
     --critical-foreground: 210 40% 98%;
-    
+
     --info: 199 89% 48%;
     --info-foreground: 222 47% 6%;
 
@@ -149,7 +149,7 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
   }
 
   body {
@@ -179,7 +179,7 @@
 @layer utilities {
   /* Monospace font for data */
   .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
   }
 
   /* Glass morphism panels */
@@ -203,17 +203,17 @@
   /* Glow effects */
   .glow-warning {
     box-shadow: 0 0 20px hsl(var(--glow-warning) / 0.3),
-                0 0 40px hsl(var(--glow-warning) / 0.1);
+      0 0 40px hsl(var(--glow-warning) / 0.1);
   }
 
   .glow-critical {
     box-shadow: 0 0 20px hsl(var(--glow-critical) / 0.4),
-                0 0 40px hsl(var(--glow-critical) / 0.2);
+      0 0 40px hsl(var(--glow-critical) / 0.2);
   }
 
   .glow-success {
     box-shadow: 0 0 20px hsl(var(--glow-success) / 0.3),
-                0 0 40px hsl(var(--glow-success) / 0.1);
+      0 0 40px hsl(var(--glow-success) / 0.1);
   }
 
   /* Map specific utilities */
@@ -240,7 +240,8 @@
 }
 
 @keyframes pulse-critical {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 0 0 hsl(var(--critical) / 0.7);
   }
@@ -251,7 +252,8 @@
 }
 
 @keyframes pulse-warning {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 0 0 hsl(var(--warning) / 0.5);
   }
@@ -262,7 +264,8 @@
 }
 
 @keyframes pulse-success {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

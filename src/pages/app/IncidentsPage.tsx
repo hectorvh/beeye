@@ -1,5 +1,4 @@
-// src/pages/app/IncidentsPage.tsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Flame,
@@ -8,6 +7,7 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,24 +22,53 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { mockIncidents } from "@/data/mockData";
 import { cn } from "@/lib/utils";
+import { useDemoStore } from "@/store/demoStore";
+
+function downloadJson(filename: string, data: unknown) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function IncidentsPage() {
+  const { incidents, createIncident } = useDemoStore();
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedPriority, setSelectedPriority] = useState<string>("all");
+  const [q, setQ] = useState("");
 
-  const filteredIncidents = mockIncidents.filter((incident) => {
-    if (selectedStatus !== "all" && incident.status !== selectedStatus)
-      return false;
-    if (selectedPriority !== "all" && incident.priority !== selectedPriority)
-      return false;
-    return true;
-  });
+  const filteredIncidents = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    return incidents.filter((incident) => {
+      if (selectedStatus !== "all" && incident.status !== selectedStatus)
+        return false;
+      if (selectedPriority !== "all" && incident.priority !== selectedPriority)
+        return false;
+
+      if (!query) return true;
+      const hay = [
+        incident.id,
+        incident.name,
+        incident.status,
+        incident.priority,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(query);
+    });
+  }, [incidents, selectedStatus, selectedPriority, q]);
 
   const formatTimeAgo = (dateString: string) => {
     const diff = Date.now() - new Date(dateString).getTime();
     const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "just now";
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
@@ -62,6 +91,17 @@ export default function IncidentsPage() {
     }
   };
 
+  const onCreateIncident = () => {
+    const name = window.prompt("Incident name", "New Wildfire Incident");
+    if (!name) return;
+    const priority = (window.prompt(
+      "Priority: critical/high/medium/low",
+      "high"
+    ) || "high") as any;
+    const id = createIncident(name, priority);
+    window.alert(`Created ${id}`);
+  };
+
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
@@ -75,10 +115,21 @@ export default function IncidentsPage() {
               Track and manage active wildfire incidents
             </p>
           </div>
-          <Button className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Incident
-          </Button>
+
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => downloadJson("incidents.json", incidents)}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button className="w-full sm:w-auto" onClick={onCreateIncident}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Incident
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -86,8 +137,9 @@ export default function IncidentsPage() {
           <StatCard
             title="Active Incidents"
             value={
-              mockIncidents.filter(
-                (i) => !["extinguished", "false_alarm"].includes(i.status)
+              incidents.filter(
+                (i) =>
+                  !["extinguished", "false_alarm"].includes(i.status as any)
               ).length
             }
             icon={Flame}
@@ -95,19 +147,21 @@ export default function IncidentsPage() {
           />
           <StatCard
             title="Critical Priority"
-            value={
-              mockIncidents.filter((i) => i.priority === "critical").length
-            }
+            value={incidents.filter((i) => i.priority === "critical").length}
             subtitle="Requires immediate attention"
             variant="critical"
           />
           <StatCard
             title="Confirmed Fires"
-            value={mockIncidents.filter((i) => i.status === "confirmed").length}
+            value={incidents.filter((i) => i.status === "confirmed").length}
           />
           <StatCard
             title="Linked Alerts"
-            value={mockIncidents.reduce((acc, i) => acc + i.alertIds.length, 0)}
+            value={incidents.reduce(
+              (acc, i) => acc + (i.alertIds || []).length,
+              0
+            )}
+            icon={AlertTriangle}
           />
         </div>
       </div>
@@ -116,7 +170,12 @@ export default function IncidentsPage() {
       <div className="flex items-center gap-2 md:gap-4 border-b border-border bg-card/50 px-4 md:px-6 py-3 overflow-x-auto">
         <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search..." className="pl-9 bg-surface-1" />
+          <Input
+            placeholder="Search..."
+            className="pl-9 bg-surface-1"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
 
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -191,6 +250,9 @@ export default function IncidentsPage() {
                     <StatusBadge variant={getStatusVariant(incident.status)}>
                       {incident.status.replace("_", " ").toUpperCase()}
                     </StatusBadge>
+                    <Badge variant="outline" className="font-mono text-[10px]">
+                      {incident.id.toUpperCase()}
+                    </Badge>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 text-[10px] md:text-sm text-muted-foreground mb-2 md:mb-3">
@@ -200,8 +262,8 @@ export default function IncidentsPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3 md:h-4 md:w-4" />
-                      {incident.alertIds.length} alert
-                      {incident.alertIds.length !== 1 ? "s" : ""}
+                      {(incident.alertIds || []).length} alert
+                      {(incident.alertIds || []).length !== 1 ? "s" : ""}
                     </span>
                     <span className="hidden sm:flex items-center gap-1">
                       <strong className="text-foreground">
@@ -228,6 +290,12 @@ export default function IncidentsPage() {
               </div>
             </Link>
           ))}
+
+          {filteredIncidents.length === 0 && (
+            <div className="text-center text-sm text-muted-foreground py-10">
+              No incidents match your filters.
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>

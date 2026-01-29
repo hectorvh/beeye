@@ -1,4 +1,4 @@
-// src/pages/app/IncidentDetailPage.tsx
+import { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Flame,
@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Shield,
   Zap,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,22 +23,52 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  mockIncidents,
-  mockAlerts,
-  mockPredictionRuns,
-  mockSpreadEnvelopes,
-  mockImpactSummary,
-} from "@/data/mockData";
 import { cn } from "@/lib/utils";
+import { useDemoStore, demoUtils } from "@/store/demoStore";
+
+function downloadJson(filename: string, data: unknown) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function IncidentDetailPage() {
   const { id } = useParams();
-  const incident = mockIncidents.find((i) => i.id === id);
-  const linkedAlerts = mockAlerts.filter((a) =>
-    incident?.alertIds.includes(a.id)
-  );
-  const prediction = mockPredictionRuns.find((p) => p.incidentId === id);
+  const {
+    incidents,
+    alerts,
+    predictionRuns,
+    spreadEnvelopes,
+    impactSummary,
+    runPrediction,
+    updateIncidentStatus,
+    linkAlertToIncident,
+  } = useDemoStore();
+
+  const incident = incidents.find((i) => i.id === id);
+
+  const linkedAlerts = useMemo(() => {
+    if (!incident) return [];
+    return alerts.filter((a) => (incident.alertIds || []).includes(a.id));
+  }, [incident, alerts]);
+
+  const incidentRuns = useMemo(() => {
+    if (!id) return [];
+    return predictionRuns.filter((p) => p.incidentId === id);
+  }, [predictionRuns, id]);
+
+  const latestRun = incidentRuns[0];
+
+  const runEnvelopes = useMemo(() => {
+    if (!latestRun) return [];
+    return spreadEnvelopes.filter((e) => e.runId === latestRun.id);
+  }, [spreadEnvelopes, latestRun]);
 
   if (!incident) {
     return (
@@ -56,15 +87,6 @@ export default function IncidentDetailPage() {
     );
   }
 
-  const formatTimeAgo = (dateString: string) => {
-    const diff = Date.now() - new Date(dateString).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
-
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -74,6 +96,7 @@ export default function IncidentDetailPage() {
       case "contained":
         return "info";
       case "controlled":
+      case "extinguished":
         return "success";
       default:
         return "neutral";
@@ -90,19 +113,19 @@ export default function IncidentDetailPage() {
     {
       time: "15m ago",
       action: "Prediction run completed",
-      actor: "AI Model v2.3.1",
+      actor: "AI Model",
       type: "prediction",
     },
     {
       time: "32m ago",
       action: "Alert linked",
-      actor: "Operator Smith",
+      actor: "Operator",
       type: "alert",
     },
     {
       time: "1h ago",
       action: "Incident confirmed",
-      actor: "Commander Johnson",
+      actor: "Commander",
       type: "status",
     },
     {
@@ -125,7 +148,7 @@ export default function IncidentDetailPage() {
           </Link>
 
           <div className="flex-1">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-bold tracking-tight">
                 {incident.name}
               </h1>
@@ -137,7 +160,7 @@ export default function IncidentDetailPage() {
               </Badge>
             </div>
 
-            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4" />
                 {incident.location.coordinates[1].toFixed(4)},{" "}
@@ -145,7 +168,7 @@ export default function IncidentDetailPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />
-                Started {formatTimeAgo(incident.createdAt)}
+                Started {demoUtils.formatTimeAgo(incident.createdAt)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Users className="h-4 w-4" />
@@ -156,11 +179,23 @@ export default function IncidentDetailPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() =>
+                downloadJson(`${incident.id}-evidence.json`, {
+                  incident,
+                  linkedAlerts,
+                  latestRun,
+                  runEnvelopes,
+                  impactSummary,
+                })
+              }
+            >
               <Download className="h-4 w-4 mr-2" />
               Export Evidence Pack
             </Button>
-            <Button>
+
+            <Button onClick={() => runPrediction(incident.id)}>
               <Play className="h-4 w-4 mr-2" />
               Run Prediction
             </Button>
@@ -176,23 +211,23 @@ export default function IncidentDetailPage() {
           />
           <StatCard
             title="Linked Alerts"
-            value={incident.alertIds.length}
+            value={(incident.alertIds || []).length}
             icon={AlertTriangle}
           />
           <StatCard
             title="Assets at Risk"
-            value={mockImpactSummary.assetsAtRiskCount}
+            value={impactSummary.assetsAtRiskCount}
             icon={Shield}
             variant="warning"
           />
           <StatCard
             title="Roads Threatened"
-            value={mockImpactSummary.roadsThreatenedCount}
+            value={impactSummary.roadsThreatenedCount}
             icon={TrendingUp}
           />
           <StatCard
             title="WUI Exposure"
-            value={mockImpactSummary.wuiExposureScore}
+            value={impactSummary.wuiExposureScore}
             subtitle="Score out of 100"
             icon={Zap}
             variant="critical"
@@ -212,13 +247,24 @@ export default function IncidentDetailPage() {
         </TabsList>
 
         <ScrollArea className="flex-1">
+          {/* OVERVIEW */}
           <TabsContent value="overview" className="p-6 space-y-6 m-0">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Linked Alerts */}
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">Linked Alerts</h3>
-                  <Button size="sm" variant="outline">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const alertId = window.prompt(
+                        "Alert id to link (e.g. alert-001)"
+                      );
+                      if (!alertId) return;
+                      linkAlertToIncident(alertId, incident.id);
+                    }}
+                  >
                     <Plus className="h-3 w-3 mr-1" />
                     Link Alert
                   </Button>
@@ -240,10 +286,10 @@ export default function IncidentDetailPage() {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {alert.topDrivers[0]}
+                            {alert.topDrivers?.[0] || "No drivers"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {formatTimeAgo(alert.createdAt)} •{" "}
+                            {demoUtils.formatTimeAgo(alert.createdAt)} •{" "}
                             {alert.confidence}% confidence
                           </p>
                         </div>
@@ -264,32 +310,85 @@ export default function IncidentDetailPage() {
                     </p>
                   )}
                 </div>
+
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      updateIncidentStatus(incident.id, "confirmed")
+                    }
+                  >
+                    Confirm
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      updateIncidentStatus(incident.id, "contained")
+                    }
+                  >
+                    Contain
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      updateIncidentStatus(incident.id, "controlled")
+                    }
+                  >
+                    Control
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      updateIncidentStatus(incident.id, "extinguished")
+                    }
+                  >
+                    Extinguish
+                  </Button>
+                </div>
               </div>
 
               {/* Latest Prediction */}
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">Latest Prediction</h3>
-                  <Button size="sm" variant="outline">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runPrediction(incident.id)}
+                  >
                     <BarChart3 className="h-3 w-3 mr-1" />
-                    View All
+                    Run New
                   </Button>
                 </div>
 
-                {prediction ? (
+                {latestRun ? (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                       <StatusBadge variant="success">
-                        {prediction.status.toUpperCase()}
+                        {latestRun.status.toUpperCase()}
                       </StatusBadge>
                       <span className="text-xs text-muted-foreground">
-                        Model {prediction.modelVersion}
+                        Model {latestRun.modelVersion}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatTimeAgo(
-                          prediction.completedAt || prediction.createdAt
+                        {demoUtils.formatTimeAgo(
+                          latestRun.completedAt || latestRun.createdAt
                         )}
                       </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          downloadJson(`${latestRun.id}.json`, latestRun)
+                        }
+                      >
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
                     </div>
 
                     <div className="space-y-2">
@@ -297,11 +396,15 @@ export default function IncidentDetailPage() {
                         Spread Envelopes
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {mockSpreadEnvelopes.map((env) => (
-                          <Badge key={env.id} variant="outline">
-                            T+{env.tPlusHours}h ({env.probabilityBand})
-                          </Badge>
-                        ))}
+                        {runEnvelopes.length ? (
+                          runEnvelopes.map((env) => (
+                            <Badge key={env.id} variant="outline">
+                              T+{env.tPlusHours}h ({env.probabilityBand})
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline">No envelopes</Badge>
+                        )}
                       </div>
                     </div>
 
@@ -310,7 +413,7 @@ export default function IncidentDetailPage() {
                         Key Drivers
                       </p>
                       <ul className="space-y-1.5">
-                        {mockImpactSummary.narrativeDrivers
+                        {impactSummary.narrativeDrivers
                           .slice(0, 2)
                           .map((driver, i) => (
                             <li
@@ -335,10 +438,11 @@ export default function IncidentDetailPage() {
             {/* Impact Summary */}
             <div className="rounded-xl border border-border bg-card p-5">
               <h3 className="font-semibold mb-4">Impact Assessment</h3>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="rounded-lg bg-surface-1 p-4">
                   <p className="text-3xl font-bold text-warning">
-                    {mockImpactSummary.assetsAtRiskCount}
+                    {impactSummary.assetsAtRiskCount}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Assets at Risk
@@ -346,7 +450,7 @@ export default function IncidentDetailPage() {
                 </div>
                 <div className="rounded-lg bg-surface-1 p-4">
                   <p className="text-3xl font-bold text-critical">
-                    {mockImpactSummary.roadsThreatenedCount}
+                    {impactSummary.roadsThreatenedCount}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Roads Threatened
@@ -354,7 +458,7 @@ export default function IncidentDetailPage() {
                 </div>
                 <div className="rounded-lg bg-surface-1 p-4">
                   <p className="text-3xl font-bold text-warning">
-                    {mockImpactSummary.wuiExposureScore}
+                    {impactSummary.wuiExposureScore}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     WUI Exposure Score
@@ -373,7 +477,7 @@ export default function IncidentDetailPage() {
                   Narrative Drivers
                 </p>
                 <ul className="space-y-2">
-                  {mockImpactSummary.narrativeDrivers.map((driver, i) => (
+                  {impactSummary.narrativeDrivers.map((driver, i) => (
                     <li
                       key={i}
                       className="text-sm text-muted-foreground flex items-start gap-2"
@@ -389,11 +493,16 @@ export default function IncidentDetailPage() {
             </div>
           </TabsContent>
 
+          {/* TIMELINE */}
           <TabsContent value="timeline" className="p-6 m-0">
             <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold">Incident Timeline</h3>
-                <Button size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.alert("Demo: Add event placeholder")}
+                >
                   <Plus className="h-3 w-3 mr-1" />
                   Add Event
                 </Button>
@@ -435,20 +544,64 @@ export default function IncidentDetailPage() {
             </div>
           </TabsContent>
 
+          {/* PREDICTIONS */}
           <TabsContent value="predictions" className="p-6 m-0">
-            <div className="text-center py-12">
-              <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Prediction History</h3>
-              <p className="text-muted-foreground mb-4">
-                View all prediction runs for this incident
-              </p>
-              <Button>
-                <Play className="h-4 w-4 mr-2" />
-                Run New Prediction
-              </Button>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Prediction History</h3>
+                <Button onClick={() => runPrediction(incident.id)}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Run New Prediction
+                </Button>
+              </div>
+
+              {incidentRuns.length ? (
+                <div className="space-y-3">
+                  {incidentRuns.map((run) => (
+                    <div
+                      key={run.id}
+                      className="rounded-lg bg-surface-1 p-3 flex items-center justify-between gap-4"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">
+                          {run.id.toUpperCase()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {run.modelVersion} •{" "}
+                          {demoUtils.formatTimeAgo(
+                            run.completedAt || run.createdAt
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{run.status}</Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => downloadJson(`${run.id}.json`, run)}
+                        >
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    No predictions yet
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Run a prediction to see spread envelopes and impact.
+                  </p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
+          {/* PERIMETERS */}
           <TabsContent value="perimeters" className="p-6 m-0">
             <div className="text-center py-12">
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -456,10 +609,16 @@ export default function IncidentDetailPage() {
               <p className="text-muted-foreground mb-4">
                 Track perimeter changes over time
               </p>
-              <Button variant="outline">View on Map</Button>
+              <Button
+                variant="outline"
+                onClick={() => window.alert("Demo: map perimeters placeholder")}
+              >
+                View on Map
+              </Button>
             </div>
           </TabsContent>
 
+          {/* EVIDENCE */}
           <TabsContent value="evidence" className="p-6 m-0">
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -467,13 +626,24 @@ export default function IncidentDetailPage() {
               <p className="text-muted-foreground mb-4">
                 Collect and export evidence for this incident
               </p>
-              <Button>
+              <Button
+                onClick={() =>
+                  downloadJson(`${incident.id}-evidence.json`, {
+                    incident,
+                    alerts: linkedAlerts,
+                    latestRun,
+                    envelopes: runEnvelopes,
+                    impactSummary,
+                  })
+                }
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Generate Evidence Pack
               </Button>
             </div>
           </TabsContent>
 
+          {/* TASKS */}
           <TabsContent value="tasks" className="p-6 m-0">
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -481,7 +651,7 @@ export default function IncidentDetailPage() {
               <p className="text-muted-foreground mb-4">
                 Assign and track tasks for response teams
               </p>
-              <Button>
+              <Button onClick={() => window.alert("Demo: tasks placeholder")}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Task
               </Button>
